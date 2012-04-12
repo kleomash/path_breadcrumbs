@@ -1,0 +1,369 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function path_breadcrumbs_menu() {
+
+  $items['admin/structure/path-breadcrumbs'] = array(
+    'title' => 'Path breadcrumbs',
+    'page callback' => 'path_breadcrumbs_admin_page',
+    'access arguments' => array('administer path breadcrumbs'),
+    'file' => 'path_breadcrumbs.admin.inc',
+  );
+
+  $items['admin/structure/path-breadcrumbs/create'] = array(
+    'title' => 'Create path breadcrumbs',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('path_breadcrumbs_edit_form'),
+    'access arguments' => array('administer path breadcrumbs'),
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+  $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs'] = array(
+    'title callback' => 'path_breadcrumbs_edit_page_title',
+    'title arguments' => array(4, 'edit'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('path_breadcrumbs_edit_form', 4),
+    'access arguments' => array('administer path breadcrumbs'),
+  );
+
+  $items['admin/structure/path-breadcrumbs/delete/%path_breadcrumbs'] = array(
+    'title callback' => 'path_breadcrumbs_edit_page_title',
+    'title arguments' => array(4, 'delete'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('path_breadcrumbs_delete_form', 4),
+    'access arguments' => array('administer path breadcrumbs'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function path_breadcrumbs_permission() {
+  return array(
+    'administer path breadcrumbs' => array(
+      'title' => t('Administer Path breadcrumbs'),
+      'description' => t('Allows to set or delete path breadcrumbs'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function path_breadcrumbs_page_alter(&$page) {
+
+  // See if current page has path breadcrumbs.
+  $path = request_path();
+  $path_breadcrumb = path_breadcrumbs_load_by_path($path);
+  if (!$path_breadcrumb) {
+    // Page may have path alias. We should check it!
+    if (module_exists('path')) {
+      $alias = path_load(array('alias' => $path));
+      $path_breadcrumb = path_breadcrumbs_load_by_path($alias['source']);
+    }
+  }
+
+  // If object with breadcrumbs was loaded - build breadcrumbs.
+  if ($path_breadcrumb) {
+    $breadcrumbs = _path_breadcrumbs_build_breadcrumbs($path_breadcrumb);
+    drupal_set_breadcrumb($breadcrumbs);
+  }
+}
+
+/**
+ * Builds array with breadcrumbs.
+ */
+function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
+  $breadcrumb = array();
+
+  // Add HOME link.
+  if ($path_breadcrumb->home) {
+    $breadcrumb[] = l(t('Home'), '<front>');
+  }
+
+  $titles = explode("\r\n", $path_breadcrumb->titles);
+  $paths  = explode("\r\n", $path_breadcrumb->paths);
+
+  foreach ($titles as $key => $title) {
+    if (isset($paths[$key]) && $paths[$key] != '<none>') {
+      $breadcrumb[] = l(t(check_plain($title)), $paths[$key]);
+    }
+    elseif (isset($paths[$key]) && $paths[$key] == '<none>') {
+      $breadcrumb[] = check_plain($title);
+    }
+  }
+
+  return $breadcrumb;
+}
+
+/**
+ * Returns correct title for actions page.
+ */
+function path_breadcrumbs_edit_page_title($path_breadcrumbs, $action = NULL) {
+  $replacement = array('!name' => $path_breadcrumbs->name);
+  if ($action == 'edit') {
+    return t('Edit !name', $replacement);
+  }
+  elseif ($action == 'delete') {
+    return t('Delete !name', $replacement);
+  }
+  return t('!name', $replacement);
+}
+
+/**
+ * Form for creating and editing path breadcrumbs.
+ */
+function path_breadcrumbs_edit_form($form, $form_state, $path_breadcrumb = NULL) {
+
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Display name'),
+    '#required' => TRUE,
+  );
+
+  $form['path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Path'),
+    '#description' => t('No first slash. Example: node/10'),
+    '#required' => TRUE,
+  );
+
+  $form['titles'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Breadcrumb titles'),
+    '#required' => TRUE,
+    '#description' => t('Enter one title per line.'),
+  );
+
+  $form['paths'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Breadcrumb paths'),
+    '#required' => TRUE,
+    '#description' => t('Enter one path per line. You can use @front to link
+      to the front page, or @none for no link.', array('@front' => '<front>', '@none' => '<none>')),
+  );
+
+  $form['home'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Prepend Home Link to the Breadcrumb'),
+  );
+
+  // Add default values to form if $path object exists.
+  if (!empty($path_breadcrumb)) {
+
+    foreach ($path_breadcrumb as $key => $value) {
+      $form[$key]['#default_value'] = $value;
+    }
+
+    // Place path_breadcrumbs object in form.
+    $form['path_breadcrumbs'] = array(
+      '#type' => 'value',
+      '#value' => $path_breadcrumb,
+    );
+  }
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  return $form;
+}
+
+/**
+ * Validate callback for path_breadcrumbs_form.
+ */
+function path_breadcrumbs_edit_form_validate($form, &$form_state) {
+
+  // Check whether path exists.
+  if (!isset($form_state['values']['path_breadcrumbs'])) {
+    $path = $form_state['values']['path'];
+    $path_exists = db_select('path_breadcrumbs', 'p')
+      ->fields('p', array('path_id'))
+      ->condition('p.path', trim($path))
+      ->execute()
+      ->fetchField();
+
+    if ($path_exists) {
+      form_set_error('path', t('This path is already using.'));
+    }
+  }
+}
+
+/**
+ * Submit callback for path_breadcrumbs_form.
+ */
+function path_breadcrumbs_edit_form_submit($form, &$form_state) {
+
+  // Save or update path breadcrumbs.
+  $values = $form_state['values'];
+  $data = (object) $values;
+  $path_breadcrumbs = isset($values['path_breadcrumbs']) ? $values['path_breadcrumbs'] : NULL;
+  path_breadcrumbs_save($data, $path_breadcrumbs);
+  drupal_set_message(t('Path breadcrumbs was successfully updated.'));
+
+  // Redirect to the settings page.
+  $form_state['redirect'] = 'admin/structure/path-breadcrumbs';
+}
+
+/**
+ * Form for removing path breadcrumbs from database.
+ */
+function path_breadcrumbs_delete_form($form, $form_state, $path_breadcrumbs) {
+
+  $form['path_id'] = array(
+    '#type' => 'value',
+    '#value' => $path_breadcrumbs->path_id,
+  );
+
+  $form['message']['#markup'] = t('Are you sure that you want to delete %name from database?', array('%name' => $path_breadcrumbs->name));
+
+  $form['actions'] = array('#type' => 'actions');
+
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  $form['actions']['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit callback for path_breadcrumbs_delete_form.
+ * Removes path breadcrumbs from database.
+ */
+function path_breadcrumbs_delete_form_submit($form, &$form_state) {
+
+  $values = $form_state['values'];
+  if ($values['op'] == $values['submit']) {
+    path_breadcrumbs_delete($values['path_id']);
+    drupal_set_message(t('Path breadcrumb was successfully deleted.'));
+  }
+
+  // Redirect to the settings page.
+  $form_state['redirect'] = 'admin/structure/path-breadcrumbs';
+}
+
+/**
+ * Load path breadcrumbs by path.
+ */
+function path_breadcrumbs_load_by_path($path) {
+
+  $path_breadcrumb = db_select('path_breadcrumbs', 'p')
+    ->fields('p')
+    ->condition('p.path', $path)
+    ->execute()
+    ->fetchObject();
+
+  if ($path_breadcrumb) {
+    $path_breadcrumb->titles = unserialize($path_breadcrumb->titles);
+    $path_breadcrumb->paths = unserialize($path_breadcrumb->paths);
+  }
+
+  return $path_breadcrumb;
+}
+
+/**
+ * Load path breadcrumbs.
+ */
+function path_breadcrumbs_load($path_id) {
+  static $paths;
+
+  if (!isset($paths[$path_id])) {
+    $path_breadcrumb = db_select('path_breadcrumbs', 'p')
+      ->fields('p')
+      ->condition('p.path_id', $path_id)
+      ->execute()
+      ->fetchObject();
+
+    if ($path_breadcrumb) {
+      $path_breadcrumb->titles = unserialize($path_breadcrumb->titles);
+      $path_breadcrumb->paths = unserialize($path_breadcrumb->paths);
+    }
+    $paths[$path_id] = $path_breadcrumb;
+  }
+
+  return $paths[$path_id];
+}
+
+/**
+ * Save path breadcrumbs.
+ */
+function path_breadcrumbs_save($new_data, $path_breadcrumb = NULL) {
+
+  // Remove spaces and empty lines in breadcrumb titles.
+  $titles_output = array();
+  $titles = explode("\r\n", $new_data->titles);
+  foreach ($titles as $title) {
+    if ($trimmed_title = trim($title)) {
+      $titles_output[] = $trimmed_title;
+    }
+  }
+
+  // Remove spaces and empty lines in breadcrumb titles.
+  $paths_output = array();
+  $paths = explode("\r\n", $new_data->paths);
+  foreach ($paths as $path) {
+    if ($trimmed_path = trim($path)) {
+      $paths_output[] = $trimmed_path;
+    }
+  }
+
+  // Build insert data.
+  $insert_data = array(
+    'name'   => $new_data->name,
+    'path'   => $new_data->path,
+    'titles' => serialize(implode("\r\n", $titles_output)),
+    'paths'  => serialize(implode("\r\n", $paths_output)),
+    'home'   => $new_data->home,
+  );
+
+  if ($path_breadcrumb) {
+    // Update path breadcrumbs.
+    db_update('path_breadcrumbs')
+      ->fields($insert_data)
+      ->condition('path_id', $path_breadcrumb->path_id)
+      ->execute();
+  }
+  else {
+    // Create new path breadcrumbs.
+    $path_id = db_insert('path_breadcrumbs')
+      ->fields($insert_data)
+      ->execute();
+  }
+
+  return isset($path_id) ? $path_id : $path_breadcrumb->path_id;
+}
+
+/**
+ * Delete path breadcrumbs.
+ */
+function path_breadcrumbs_delete($path_breadcrumb) {
+
+  if (ctype_digit($path_breadcrumb)) {
+    $path_id = $path_breadcrumb;
+  }
+  elseif (is_object($path_breadcrumb)) {
+    $path_id = $path_breadcrumb->path_id;
+  }
+  else {
+    return FALSE;
+  }
+
+  // Delete path breadcrumbs from database.
+  $result = db_delete('path_breadcrumbs')
+    ->condition('path_id', $path_id)
+    ->execute();
+
+  return $result;
+}

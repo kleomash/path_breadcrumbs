@@ -1,0 +1,3 @@
+name = Path breadcrubms
+description = Provides custom breadcrubms for static page
+core = 7.x

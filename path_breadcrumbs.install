@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * @file
+ * Provides database structure for PATH BREADCRUMBS module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function path_breadcrumbs_schema() {
+  $schema['path_breadcrumbs'] = array(
+    'fields' => array(
+      'path_id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'path' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'titles' => array(
+        'type' => 'blob',
+        'not null' => TRUE,
+        'size' => 'big',
+      ),
+      'paths' => array(
+        'type' => 'blob',
+        'not null' => TRUE,
+        'size' => 'big',
+      ),
+      'home' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'primary key' => array('path_id'),
+  );
+  return $schema;
+}
