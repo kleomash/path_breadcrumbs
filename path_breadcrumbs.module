@@ -265,22 +265,34 @@ function path_breadcrumbs_load_by_path($path) {
   // Build all path variants for wildcards.
   $path_variants = array();
   $path_vars = explode('/', $path);
-  $i = 0;
-  while ($i < sizeof($path_vars)) {
-    foreach ($path_vars as $key => $variant) {
-      if ($key == $i) {
-        $path_variants[$i][] = '*';
+
+  if (sizeof($path_vars) == 1) {
+    $path_variants[] = '*';
+    $path_variants[] = array_shift($path_vars);
+  }
+  else {
+    $i = 0;
+    while ($i < sizeof($path_vars)) {
+      foreach ($path_vars as $key => $variant) {
+        if ($key == $i) {
+          $path_variants[$i][] = '*';
+        }
+        else {
+          $path_variants[$i][] = $variant;
+        }
       }
-      else {
-        $path_variants[$i][] = $variant;
-      }
+      $i++;
     }
-    $i++;
   }
 
   $variants = array();
   foreach ($path_variants as $variant) {
-    $variants[] = implode('/', $variant);
+    if (is_array($variant)) {
+      $variants[] = implode('/', $variant);
+    }
+    elseif (is_string($variant)) {
+      $variants[] = $variant;
+    }
   }
 
   $path_breadcrumb = db_select('path_breadcrumbs', 'p')
