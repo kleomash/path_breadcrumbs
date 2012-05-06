@@ -262,15 +262,16 @@ function path_breadcrumbs_delete_form_submit($form, &$form_state) {
  */
 function path_breadcrumbs_load_by_path($path) {
 
+  if (!$path) {
+    return FALSE;
+  }
+
   // Build all path variants for wildcards.
   $path_variants = array();
   $path_vars = explode('/', $path);
 
-  if (sizeof($path_vars) == 1) {
-    $path_variants[] = '*';
-    $path_variants[] = array_shift($path_vars);
-  }
-  else {
+  // If more than one argument in a path.
+  if (sizeof($path_vars) > 1) {
     $i = 0;
     while ($i < sizeof($path_vars)) {
       foreach ($path_vars as $key => $variant) {
@@ -285,6 +286,10 @@ function path_breadcrumbs_load_by_path($path) {
     }
   }
 
+  // Path templates for all pathes.
+  $path_variants[] = '*';
+  $path_variants[] = $path;
+
   $variants = array();
   foreach ($path_variants as $variant) {
     if (is_array($variant)) {
@@ -294,6 +299,8 @@ function path_breadcrumbs_load_by_path($path) {
       $variants[] = $variant;
     }
   }
+
+  debug($variants);
 
   $path_breadcrumb = db_select('path_breadcrumbs', 'p')
     ->fields('p')
