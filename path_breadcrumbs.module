@@ -300,8 +300,6 @@ function path_breadcrumbs_load_by_path($path) {
     }
   }
 
-  debug($variants);
-
   $path_breadcrumb = db_select('path_breadcrumbs', 'p')
     ->fields('p')
     ->condition('p.path', $variants, 'IN')
