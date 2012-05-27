@@ -22,9 +22,20 @@ function path_breadcrumbs_menu() {
 
   $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs'] = array(
     'title' => 'Edit path breadcrumbs',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('path_breadcrumbs_edit_form', 4),
+    'page callback' => 'path_breadcrumbs_edit_page',
+    'page arguments' => array(4),
     'access arguments' => array('administer path breadcrumbs'),
+    'file' => 'path_breadcrumbs.pages.inc'
+  );
+
+  $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs/ajax/%'] = array(
+    'page callback' => 'path_breadcrumbs_edit_form_ajax_links',
+    'page arguments' => array(4, 6),
+    'access arguments' => array('administer path breadcrumbs'),
+    'delivery callback' => 'ajax_deliver',
+    'theme callback' => 'ajax_base_page_theme',
+    'type' => MENU_CALLBACK,
+    'file' => 'path_breadcrumbs.pages.inc',
   );
 
   $items['admin/structure/path-breadcrumbs/delete/%path_breadcrumbs'] = array(
@@ -147,42 +158,42 @@ function path_breadcrumbs_load_variant($path) {
 function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
   $breadcrumb = array();
 
-  $data = $path_breadcrumb->data;
-
   // Add HOME link.
-  if ($data['home'] == TRUE) {
+  if ($path_breadcrumb->home == TRUE) {
     $breadcrumb[] = l(t('Home'), '<front>');
   }
 
-  if (!empty($data['arguments'])) {
+  if (!empty($path_breadcrumb->arguments)) {
 
     // Include ctools library for contexts.
     ctools_include('context');
     $contexts = array();
 
     // Get contexts from arguments.
-    foreach ($data['arguments'] as $keyword => $arg) {
-      $argument = ctools_get_argument($arg['argument']);
-      if (isset($arg['settings'])) {
-        $argument = array_merge($argument, $arg['settings']);
+    foreach ($path_breadcrumb->arguments as $keyword => $arg) {
+      if (!empty($arg['argument'])) {
+        $argument = ctools_get_argument($arg['argument']);
+        if (isset($arg['settings'])) {
+          $argument = array_merge($argument, $arg['settings']);
+        }
+        $context  = call_user_func($argument['context'], arg($arg['position']), $argument);
+        $context->keyword = $keyword;
+        $contexts[] = $context;
       }
-      $context  = call_user_func($argument['context'], arg($arg['position']), $argument);
-      $context->keyword = $keyword;
-      $contexts[] = $context;
     }
 
     // Replace placeholders by current values.
-    $data['titles'] = ctools_context_keyword_substitute($data['titles'], array(), $contexts);
-    $data['paths']  = ctools_context_keyword_substitute($data['paths'], array(), $contexts);
+    $path_breadcrumb->titles = ctools_context_keyword_substitute($path_breadcrumb->titles, array(), $contexts);
+    $path_breadcrumb->paths  = ctools_context_keyword_substitute($path_breadcrumb->paths, array(), $contexts);
   }
 
-  $titles = explode("\n", $data['titles']);
-  $paths  = explode("\n", $data['paths']);
+  $titles = explode("\n", $path_breadcrumb->titles);
+  $paths  = explode("\n", $path_breadcrumb->paths);
 
   foreach ($titles as $key => $title) {
 
     // Translate breadcrumb title if needed.
-    if ($data['translatable'] == TRUE) {
+    if ($path_breadcrumb->translatable == TRUE) {
       $title = t($title);
     }
 
@@ -236,6 +247,8 @@ function path_breadcrumbs_add_form($form, &$form_state) {
   if (function_exists($function)) {
     $function($form, $form_state);
   }
+
+  $form['#submit'][] = 'path_breadcrumbs_add_form_submit';
 
   return $form;
 }
@@ -338,10 +351,12 @@ function _path_breadcrumbs_form_step_basic_settings(&$form, &$form_state) {
   );
 
   $form['#validate'][] = '_path_breadcrumbs_form_step_basic_settings_validate';
+  $form['#submit'][] = '_path_breadcrumbs_form_step_basic_settings_submit';
 
-  if (isset($form_state['storage']['machine_name'])) {
+  if (!empty($form_state['storage']['machine_name'])) {
     _path_breadcrumbs_form_apply_default_values($form, $form_state['storage']['machine_name']);
   }
+
   _path_breadcrumbs_form_attach_buttons($form, array('next'), 'path_breadcrumbs_add_form');
 }
 
@@ -374,7 +389,7 @@ function _path_breadcrumbs_form_step_basic_settings_validate(&$form, &$form_stat
       form_error($form['path'], t('Invalid arg <em>%</em>. All arguments must be named with keywords.'));
     }
     elseif ($bit[0] == '%') {
-      $args[substr($bit, 1)] = $position;
+      $args[substr($bit, 1)]['position'] = $position;
     }
   }
 
@@ -382,11 +397,49 @@ function _path_breadcrumbs_form_step_basic_settings_validate(&$form, &$form_stat
 }
 
 /**
+ * Submit function for basic settings form.
+ */
+function _path_breadcrumbs_form_step_basic_settings_submit($form, &$form_state) {
+
+  if (empty($form_state['storage']['machine_name'])) {
+    return FALSE;
+  }
+
+  $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
+  if (empty($breadcrumb)) {
+    return FALSE;
+  }
+
+  // Check if argument matches all keywords.
+  if (!empty($form_state['values']['keywords'])) {
+    $arguments = array();
+    foreach ($form_state['values']['keywords'] as $keyword => $position) {
+      // Ensure that keywords were not changed after path update.
+      if (!empty($breadcrumb->arguments[$keyword])) {
+        $arguments[$keyword] = $breadcrumb->arguments[$keyword];
+      }
+    }
+    $breadcrumb->arguments = $arguments;
+    path_breadcrumbs_object_cache_set($form_state['storage']['machine_name'], $breadcrumb);
+  }
+}
+
+/**
  * Provide form arguments selection.
  */
 function _path_breadcrumbs_form_step_arguments_selection(&$form, &$form_state) {
 
-  $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
+  if (isset($form_state['storage']['machine_name'])) {
+    $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
+
+    // Merge data of arguments and keywords.
+    if (!empty($breadcrumb->keywords)) {
+      foreach ($breadcrumb->keywords as $keyword => $position) {
+        $breadcrumb->arguments[$keyword]['position'] = $position['position'];
+      }
+    }
+  }
+
   if (empty($breadcrumb)) {
     return;
   }
@@ -397,12 +450,12 @@ function _path_breadcrumbs_form_step_arguments_selection(&$form, &$form_state) {
     'argument' => array(),
   );
 
-  foreach ($breadcrumb->keywords as $keyword => $position) {
+  foreach ($breadcrumb->arguments as $keyword => $argument) {
 
     $context_title = t('No context assigned');
 
     // Get context from cached data if presented.
-    if (!empty($breadcrumb->arguments[$keyword])) {
+    if (!empty($breadcrumb->arguments[$keyword]['argument'])) {
       ctools_include('context');
       $plugin = ctools_get_argument($breadcrumb->arguments[$keyword]['argument']);
       if (isset($plugin['title'])) {
@@ -411,7 +464,7 @@ function _path_breadcrumbs_form_step_arguments_selection(&$form, &$form_state) {
     }
 
     $form['table']['argument'][$keyword]['#keyword']  = $keyword;
-    $form['table']['argument'][$keyword]['#position'] = $position;
+    $form['table']['argument'][$keyword]['#position'] = $argument['position'];
     $form['table']['argument'][$keyword]['#context']  = $context_title;
 
     // The URL for this ajax button.
@@ -455,8 +508,11 @@ function _path_breadcrumbs_form_step_arguments_selection(&$form, &$form_state) {
  */
 function _path_breadcrumbs_form_step_breadcrumbs_settings(&$form, &$form_state) {
 
-  $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
-  if (!$breadcrumb) {
+  if (isset($form_state['storage']['machine_name'])) {
+    $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
+  }
+
+  if (empty($breadcrumb)) {
     return;
   }
 
@@ -489,6 +545,7 @@ function _path_breadcrumbs_form_step_breadcrumbs_settings(&$form, &$form_state) 
 
   // Build context substitutions.
   $rows = array();
+
   if (!empty($breadcrumb->arguments)) {
     ctools_include('context');
     foreach ($breadcrumb->arguments as $keyword => $arg) {
@@ -516,6 +573,11 @@ function _path_breadcrumbs_form_step_breadcrumbs_settings(&$form, &$form_state) 
   }
 
   _path_breadcrumbs_form_attach_buttons($form, array('prev', 'finish'), 'path_breadcrumbs_add_form');
+
+  if (isset($form_state['storage']['machine_name'])) {
+    _path_breadcrumbs_form_apply_default_values($form, $form_state['storage']['machine_name']);
+  }
+
 }
 
 /**
@@ -545,7 +607,7 @@ function theme_path_breadcrumbs_form_step_arguments_selection_table($vars) {
   }
 
   if (!$rows) {
-    $rows[] = array(array('data' => t('The path %path has no arguments to configure.', array('%path' => $form['#breadcrumbs-path'])), 'colspan' => 3));
+    $rows[] = array(array('data' => t('The path %path has no arguments to configure.', array('%path' => $form['#breadcrumbs-path'])), 'colspan' => 4));
   }
 
   return theme('table', array(
@@ -558,17 +620,27 @@ function theme_path_breadcrumbs_form_step_arguments_selection_table($vars) {
 /**
  * Add default values to form if presented.
  */
-function _path_breadcrumbs_form_apply_default_values(&$form, $path_name) {
-  $breadcrumb = path_breadcrumbs_object_cache_get($path_name);
+function _path_breadcrumbs_form_apply_default_values(&$form, $breadcrumb) {
+
+  // Load breacrumb from cache by machine_name.
+  if (is_string($breadcrumb)) {
+    $breadcrumb = path_breadcrumbs_object_cache_get($breadcrumb);
+  }
+  elseif (is_object($breadcrumb)) {
+    if (!empty($breadcrumb->data)) {
+      $breadcrumb = (object) array_merge((array) $breadcrumb, (array) $breadcrumb->data);
+    }
+  }
+
   if (!empty($breadcrumb)) {
     foreach ($form as $key => $value) {
-      if (isset($breadcrumb->{$key}) && is_string($breadcrumb->{$key})) {
-        $form[$key]['#default_value'] = $breadcrumb->{$key};
-      }
-      elseif (isset($breadcrumb->{$key}) && is_array($breadcrumb->{$key})) {
+      if (!empty($breadcrumb->{$key}) && is_array($breadcrumb->{$key})) {
         foreach ($breadcrumb->{$key} as $array_key => $value) {
           $form[$key][$array_key]['#default_value'] = $value;
         }
+      }
+      elseif (!empty($breadcrumb->{$key})) {
+        $form[$key]['#default_value'] = $breadcrumb->{$key};
       }
     }
   }
@@ -618,21 +690,25 @@ function _path_breadcrumbs_form_attach_buttons(&$form, $buttons = array(), $form
 /**
  * Form that return availible matches for path arguments.
  */
-function path_breadcrumbs_argument_context_form($form, $form_state, $path_name, $keyword) {
+function path_breadcrumbs_argument_context_form($form, $form_state, $path_name = NULL, $keyword = NULL) {
 
   $form['#prefix'] = '<div id="path-breadcrumbs-argument-context-form-wrapper">';
   $form['#suffix'] = '</div>';
   $form['#tree']   = TRUE;
 
-  $form['path_name'] = array(
-    '#type' => 'value',
-    '#value' => $path_name,
-  );
+  if ($path_name) {
+    $form['path_name'] = array(
+      '#type' => 'value',
+      '#value' => $path_name,
+    );
+  }
 
-  $form['keyword'] = array(
-    '#type' => 'value',
-    '#value' => $keyword,
-  );
+  if ($keyword) {
+    $form['keyword'] = array(
+      '#type' => 'value',
+      '#value' => $keyword,
+    );
+  }
 
   // Get current form step.
   if (!isset($form_state['storage']['step'])) {
@@ -661,9 +737,14 @@ function path_breadcrumbs_argument_context_form($form, $form_state, $path_name, 
         '#options' => $options,
       );
 
-      $breadcrumb = path_breadcrumbs_object_cache_get($path_name);
-      if (isset($breadcrumb->arguments[$keyword])) {
-        $form['argument']['#default_value'] = $breadcrumb->arguments[$keyword]['argument'];
+      if (isset($form_state['storage']['argument'])) {
+        $form['argument']['#default_value'] = $form_state['storage']['argument'];
+      }
+      else {
+        $breadcrumb = path_breadcrumbs_object_cache_get($path_name);
+        if (isset($breadcrumb->arguments[$keyword])) {
+          $form['argument']['#default_value'] = $breadcrumb->arguments[$keyword]['argument'];
+        }
       }
 
       _path_breadcrumbs_form_attach_buttons($form, array('next'), 'path_breadcrumbs_argument_context_form');
@@ -686,7 +767,7 @@ function path_breadcrumbs_argument_context_form($form, $form_state, $path_name, 
       }
 
       _path_breadcrumbs_form_attach_buttons($form, array('prev', 'finish'), 'path_breadcrumbs_argument_context_form');
-      _path_breadcrumbs_form_apply_default_values($form, $path_name);
+      _path_breadcrumbs_form_apply_default_values($form, $form_state['storage']['path_name']);
 
       break;
   }
@@ -742,22 +823,23 @@ function path_breadcrumbs_argument_context_form_ajax_callback($form, $form_state
 
     if (isset($actions['finish']) && $values['op'] == $actions['finish']) {
       // Update cache data.
-      $breadcrumb = path_breadcrumbs_object_cache_get($values['path_name']);
-      $breadcrumb->arguments[$keyword] = array(
-        'argument' => $form_state['storage']['argument'],
-        'position' => $breadcrumb->keywords[$keyword],
-        'settings' => $values['settings'],
-      );
+      $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['path_name']);
+      $breadcrumb->arguments[$keyword]['argument'] = $form_state['storage']['argument'];
+      if (!empty($values['settings'])) {
+        $breadcrumb->arguments[$keyword]['settings'] = $values['settings'];
+      }
       path_breadcrumbs_object_cache_set($form_state['storage']['path_name'], $breadcrumb);
 
       // Rebuild second step of path breadcrumbs add_form.
       $add_form_state = array(
         'storage' => array(
           'step' => 2,
-          'machine_name' => $values['path_name'],
+          'machine_name' => $form_state['storage']['path_name'],
         ));
 
       $form = drupal_build_form('path_breadcrumbs_add_form', $add_form_state);
+
+      ctools_include('modal');
 
       // Include additinal ajax commands.
       $commands[] = ajax_command_replace('#path-breadcrumbs-argument-table', drupal_render($form['table']));
@@ -771,101 +853,82 @@ function path_breadcrumbs_argument_context_form_ajax_callback($form, $form_state
 }
 
 /**
- * Form for creating and editing path breadcrumbs.
+ * Form for editing path breadcrumbs.
  */
-function path_breadcrumbs_edit_form($form, $form_state, $path_breadcrumb = NULL) {
+function path_breadcrumbs_edit_form($form, $form_state, $breadcrumb, $step) {
 
-  $form['name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Display name'),
-    '#required' => TRUE,
-  );
+  $form_state['storage']['machine_name'] = $breadcrumb->machine_name;
+  $form_state['storage']['step'] = $step;
 
-  $form['path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Path'),
-    '#description' => t('No first slash. Example: node/10/edit. Also you may use wildcards with * symbol. Example: node/*/edit.'),
-    '#required' => TRUE,
-  );
+  $form = path_breadcrumbs_add_form(array(), $form_state);
 
-  $form['home'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Prepend Home Link to the Breadcrumb'),
-    '#description' => t('First breadcrumb will be a link to the front page.')
-  );
+  $form['#prefix'] = '<div id="path-breadcrumbs-edit-form-wrapper">';
+  $form['#suffix'] = '</div>';
 
-  $form['titles'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Breadcrumb titles'),
-    '#required' => TRUE,
-    '#description' => t('Enter one title per line.'),
-  );
-
-  $form['paths'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Breadcrumb paths'),
-    '#required' => TRUE,
-    '#description' => t('Enter one path per line. You can use @front to link
-      to the front page, or @none for no link.', array('@front' => '<front>', '@none' => '<none>')),
-  );
-
-  // Add default values to form if $path object exists.
-  if (!empty($path_breadcrumb)) {
-
-    foreach ($path_breadcrumb as $key => $value) {
-      $form[$key]['#default_value'] = $value;
-    }
-
-    // Place path_breadcrumbs object in form.
-    $form['path_breadcrumbs'] = array(
-      '#type' => 'value',
-      '#value' => $path_breadcrumb,
-    );
+  // Disable machine name edition.
+  if ($step == 1) {
+    $form['machine_name']['#disabled'] = TRUE;
   }
 
-  $form['actions'] = array('#type' => 'actions');
-  $form['actions']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
+  // Set two submit buttons for every form.
+
+  $form['actions'] = array(
+    '#type' => 'action',
+    '#weight' => 100,
   );
+
+  $base = array(
+    '#type' => 'submit',
+    '#ajax' => array(
+      'callback' => 'path_breadcrumbs_edit_form_ajax_callback',
+      'wrapper' => 'path-breadcrumbs-edit-form-wrapper',
+    ),
+  );
+
+  $form['actions']['update'] = array(
+    '#value' => t('Update')
+  ) + $base;
+
+  $form['actions']['update_save'] = array(
+    '#value' => t('Update and Save')
+  ) + $base;
+
+  $form['#submit'][] = 'path_breadcrumbs_edit_form_submit';
 
   return $form;
 }
 
 /**
- * Validate callback for path_breadcrumbs_form.
+ * Ajax callback for path breadcrumbs EDIT form.
  */
-function path_breadcrumbs_edit_form_validate($form, &$form_state) {
-
-  // Check whether path exists.
-  if (!isset($form_state['values']['path_breadcrumbs'])) {
-    $path = $form_state['values']['path'];
-    $path_exists = db_select('path_breadcrumbs', 'p')
-      ->fields('p', array('path_id'))
-      ->condition('p.path', trim($path))
-      ->execute()
-      ->fetchField();
-
-    if ($path_exists) {
-      form_set_error('path', t('This path is already using.'));
+function path_breadcrumbs_edit_form_ajax_callback($form, $form_state) {
+  if (!form_get_errors()) {
+    $values = $form_state['values'];
+    if (isset($values['update_save']) && $values['op'] == $values['update_save']) {
+      ctools_include('ajax');
+      $commands = array();
+      $commands[] = ctools_ajax_command_redirect('admin/structure/path-breadcrumbs');
+      return array('#type' => 'ajax', '#commands' => $commands);
     }
   }
+  return $form;
 }
 
 /**
- * Submit callback for path_breadcrumbs_form.
+ * Submit callback for path breadcrumbs EDIT form.
  */
 function path_breadcrumbs_edit_form_submit($form, &$form_state) {
-
-  // Save or update path breadcrumbs.
   $values = $form_state['values'];
-  $data = (object) $values;
-  $path_breadcrumbs = isset($values['path_breadcrumbs']) ? $values['path_breadcrumbs'] : NULL;
-  path_breadcrumbs_save($data, $path_breadcrumbs);
-  drupal_set_message(t('Path breadcrumbs was successfully updated.'));
 
-  // Redirect to the settings page.
-  $form_state['redirect'] = 'admin/structure/path-breadcrumbs';
+  if (isset($values['update']) && $values['op'] == $values['update']) {
+    drupal_set_message(t('The breadcrumbs has been updated.'));
+    drupal_set_message(t('Changes will not be permanent until you save it.'), 'warning');
+  }
+  elseif (isset($values['update_save']) && $values['op'] == $values['update_save']) {
+    $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
+    path_breadcrumbs_save($breadcrumb);
+    drupal_set_message(t('Breadcrumb %name was updated.', array('%name' => $breadcrumb->name)));
+  }
 }
 
 /**
@@ -878,9 +941,13 @@ function path_breadcrumbs_delete_form($form, $form_state, $path_breadcrumbs) {
     '#value' => $path_breadcrumbs->path_id,
   );
 
-  $form['message']['#markup'] = t('Are you sure that you want to delete %name from database?', array('%name' => $path_breadcrumbs->name));
+  $form['message'] = array(
+    '#markup' => t('Are you sure that you want to delete %name from database?', array('%name' => $path_breadcrumbs->name))
+  );
 
-  $form['actions'] = array('#type' => 'actions');
+  $form['actions'] = array(
+    '#type' => 'actions'
+  );
 
   $form['actions']['submit'] = array(
     '#type' => 'submit',
@@ -914,7 +981,7 @@ function path_breadcrumbs_delete_form_submit($form, &$form_state) {
 /**
  * Save path breadcrumbs.
  */
-function path_breadcrumbs_save($breadcrumb, $path_breadcrumb = NULL) {
+function path_breadcrumbs_save($breadcrumb) {
 
   // Remove spaces and empty lines in breadcrumb titles.
   $titles_output = array();
@@ -948,11 +1015,11 @@ function path_breadcrumbs_save($breadcrumb, $path_breadcrumb = NULL) {
     )),
   );
 
-  if ($path_breadcrumb) {
+  if (!empty($breadcrumb->path_id)) {
     // Update path breadcrumbs.
     db_update('path_breadcrumbs')
       ->fields($insert_data)
-      ->condition('path_id', $path_breadcrumb->path_id)
+      ->condition('path_id', $breadcrumb->path_id)
       ->execute();
   }
   else {
@@ -962,7 +1029,7 @@ function path_breadcrumbs_save($breadcrumb, $path_breadcrumb = NULL) {
       ->execute();
   }
 
-  return isset($path_id) ? $path_id : $path_breadcrumb->path_id;
+  return isset($path_id) ? $path_id : $breadcrumb->path_id;
 }
 
 /**
@@ -995,16 +1062,18 @@ function path_breadcrumbs_load($path_id) {
   static $paths;
 
   if (!isset($paths[$path_id])) {
-    $path_breadcrumb = db_select('path_breadcrumbs', 'p')
+    $breadcrumb = db_select('path_breadcrumbs', 'p')
       ->fields('p')
       ->condition('p.path_id', $path_id)
       ->execute()
       ->fetchObject();
 
-    if ($path_breadcrumb) {
-      $path_breadcrumb->data = unserialize($path_breadcrumb->data);
+    if ($breadcrumb) {
+      $breadcrumb->data = unserialize($breadcrumb->data);
+      $breadcrumb = (object) array_merge((array) $breadcrumb, $breadcrumb->data);
+      unset($breadcrumb->data);
     }
-    $paths[$path_id] = $path_breadcrumb;
+    $paths[$path_id] = $breadcrumb;
   }
 
   return $paths[$path_id];
@@ -1017,17 +1086,18 @@ function path_breadcrumbs_load_by_name($name) {
   static $paths;
 
   if (!isset($paths[$name])) {
-    $path_breadcrumb = db_select('path_breadcrumbs', 'p')
+    $breadcrumb = db_select('path_breadcrumbs', 'p')
       ->fields('p')
       ->condition('p.machine_name', $name)
       ->execute()
       ->fetchObject();
 
-    if ($path_breadcrumb) {
-      $path_breadcrumb->titles = unserialize($path_breadcrumb->titles);
-      $path_breadcrumb->paths = unserialize($path_breadcrumb->paths);
+    if ($breadcrumb) {
+      $breadcrumb->data = unserialize($breadcrumb->data);
+      $breadcrumb = (object) array_merge((array) $breadcrumb, $breadcrumb->data);
+      unset($breadcrumb->data);
     }
-    $paths[$name] = $path_breadcrumb;
+    $paths[$name] = $breadcrumb;
   }
 
   return $paths[$name];
