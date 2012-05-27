@@ -69,84 +69,68 @@ function path_breadcrumbs_update_7200(&$sandbox) {
     ->fields('p')
     ->execute();
 
-  $new_variables = array();
+  $new_variants = array();
   foreach ($variants as $variant) {
+
     // Replace '*' in path on a new argument placeholder.
     $path_arguments = explode('/', $variant->path);
-    $new_arguments = array();
-    foreach ($path_arguments as $arg) {
+    $new_path = array();
+    $arguments = array();
+    $arg_counter = 0;
+    foreach ($path_arguments as $index => $arg) {
       if ($arg == '*') {
-        $new_arguments[] = '%argument';
+        $keyword = 'argument_' . ++$arg_counter;
+        $new_path[] = '%' . $keyword;
+        $arguments[$keyword] = array(
+          'position' => $index,
+        );
       }
       else {
-        $new_arguments[] = $arg;
+        $new_path[] = $arg;
       }
     }
-    $variant->path = implode('/', $new_arguments);
+    $variant->path = implode('/', $new_path);
 
-    // Create machine name for varian namet.
-    $variant->machine_name = drupal_strtolower(preg_replace('/[^a-zA-Z]+/i', '_', $variant->name));
+    // Create machine name from variant name.
+    $search = array('!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '+', '=', '/', ' ');
+    $replace = array_fill(0, count($search), '_');
+    $variant->machine_name = drupal_strtolower(str_replace($search, $replace, $variant->name));
 
+    // Build data array.
     $variant->data = serialize(array(
-      'titles'        => $variant->titles,
-      'paths'         => $variant->paths,
+      'titles'        => unserialize($variant->titles),
+      'paths'         => unserialize($variant->paths),
       'home'          => $variant->home,
       'translatable'  => 1,
-      'arguments'     => array(),
+      'arguments'     => $arguments,
     ));
 
-    $new_variables[] = $variant;
+    $new_variants[] = $variant;
   }
 
-  // Drop old fields.
-  db_drop_field('path_breadcrumbs', 'titles');
-  db_drop_field('path_breadcrumbs', 'paths');
-  db_drop_field('path_breadcrumbs', 'home');
+  // Drop old table.
+  db_drop_table('path_breadcrumbs');
 
-  // Add new field to the table.
-  db_add_field('path_breadcrumbs', 'machine_name', array(
-    'description' => t("Breadcrumb's variant machine name"),
-    'type' => 'varchar',
-    'length' => 64,
-    'not null' => TRUE,
-  ));
-
-  db_add_field('path_breadcrumbs', 'data', array(
-    'description' => t('Serialized data of breadcrumb'),
-    'type' => 'blob',
-    'not null' => TRUE,
-    'size' => 'big',
-  ));
-
-  db_add_field('path_breadcrumbs', 'weight', array(
-    'description' => t('Breadcrumb weight related to other breadcrumbs'),
-    'type' => 'int',
-    'not null' => TRUE,
-    'default' => 0,
-  ));
-
-  db_add_field('path_breadcrumbs', 'disabled', array(
-    'description' => t('Shows enabled this variant or not'),
-    'type' => 'int',
-    'not null' => TRUE,
-    'default' => 0,
-  ));
+  // Create new table.
+  db_create_table('path_breadcrumbs', drupal_get_schema_unprocessed('path_breadcrumbs', 'path_breadcrumbs'));
 
   // Insert old data into updated table.
-  foreach ($new_variables as $variant) {
-    db_merge('path_breadcrumbs')
-      ->key(array(
-        'path_id' => $variant->path_id,
-      ))
+  foreach ($new_variants as $variant) {
+    db_insert('path_breadcrumbs')
       ->fields(array(
+        'path_id' => $variant->path_id,
         'name' => $variant->name,
         'machine_name' => $variant->machine_name,
         'path' => $variant->path,
         'data' => $variant->data,
         'weight' => $variant->path_id,
         'disabled' => 0,
-      ));
+      ))
+      ->execute();
   }
 
-  return t('Path breadcrumbs successfully converted old data to a new one.');
+  // Enable module that is new for 7.x-2.x.
+  module_enable(array('path_breadcrumbs_ui'));
+
+  return t('Path breadcrumbs successfully converted data from old table to a new one.');
 }
