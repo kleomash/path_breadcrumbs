@@ -1,0 +1,6 @@
+name = Path breadcrubms UI
+description = User interface for Path Breadcrumbs module
+core = 7.x
+package = Path breadcrumbs
+
+dependencies[] = path_breadcrumbs

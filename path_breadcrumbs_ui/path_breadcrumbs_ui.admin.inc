@@ -2,13 +2,13 @@
 
 /**
  * @File
- * Administrative callbacks for PATH BREADCRUMBS module.
+ * Administrative callbacks for PATH BREADCRUMBS UI module.
  */
 
 /**
  * Page callback for module settings page.
  */
-function path_breadcrumbs_admin_page() {
+function path_breadcrumbs_ui_admin_page() {
 
   // Load path breadcrumbs.
   $result = db_select('path_breadcrumbs', 'p')

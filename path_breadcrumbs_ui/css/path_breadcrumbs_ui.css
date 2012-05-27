@@ -1,0 +1,14 @@
+#path-breadcrumbs-ui-wrapper {
+  padding: 0 0 0 150px;
+}
+
+#path-breadcrumbs-ui-menu {
+  float: left;
+  width: 150px;
+  margin-left: -150px;
+  height: 100%;
+}
+
+#path-breadcrumbs-ui-edit-form-wrapper {
+  float: left;
+}

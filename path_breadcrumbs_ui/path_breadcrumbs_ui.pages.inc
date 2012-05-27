@@ -8,13 +8,13 @@
 /**
  * Page callback for arguments configuration in path.
  */
-function path_breadcrumbs_configure_arguments_page($path_name, $keyword) {
+function path_breadcrumbs_ui_configure_arguments_page($path_name, $keyword) {
 
   // Include ctools modal plugin.
   ctools_include('modal');
 
   // Load argument settings form.
-  $form = drupal_get_form('path_breadcrumbs_argument_context_form', $path_name, $keyword);
+  $form = drupal_get_form('path_breadcrumbs_ui_argument_context_form', $path_name, $keyword);
   $commands = ctools_modal_form_render(array('title' => t('Choose argument')), $form);
   return array('#type' => 'ajax', '#commands' => $commands);
 }
@@ -26,7 +26,7 @@ function path_breadcrumbs_configure_arguments_page($path_name, $keyword) {
  * @param $keyword
  * @return array
  */
-function path_breadcrumbs_change_arguments_page($path_name, $keyword) {
+function path_breadcrumbs_ui_change_arguments_page($path_name, $keyword) {
   // Include ctools modal plugin.
   ctools_include('modal');
 
@@ -42,7 +42,7 @@ function path_breadcrumbs_change_arguments_page($path_name, $keyword) {
     ),
   );
 
-  $form = drupal_build_form('path_breadcrumbs_argument_context_form', $form_state);
+  $form = drupal_build_form('path_breadcrumbs_ui_argument_context_form', $form_state);
   $commands = ctools_modal_form_render(array('title' => t('Choose argument')), $form);
   return array('#type' => 'ajax', '#commands' => $commands);
 }
@@ -50,7 +50,10 @@ function path_breadcrumbs_change_arguments_page($path_name, $keyword) {
 /**
  * Form for editing path breadcrumbs.
  */
-function path_breadcrumbs_edit_page($path_breadcrumb) {
+function path_breadcrumbs_ui_edit_page($path_breadcrumb) {
+
+  $page['content']['#prefix'] = '<div id="path-breadcrumbs-ui-wrapper" class="clearfix">';
+  $page['content']['#suffix'] = '</div>';
 
   // Save form in cache.
   path_breadcrumbs_object_cache_set($path_breadcrumb->machine_name, $path_breadcrumb);
@@ -58,21 +61,21 @@ function path_breadcrumbs_edit_page($path_breadcrumb) {
   $links[] = array(
     '#type' => 'link',
     '#title' => t('Basic'),
-    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/basic',
+    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/1',
     '#attributes' => array('class' => array('use-ajax')),
   );
 
   $links[] = array(
     '#type' => 'link',
     '#title' => t('Arguments'),
-    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/arguments',
+    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/2',
     '#attributes' => array('class' => array('use-ajax')),
   );
 
   $links[] = array(
     '#type' => 'link',
     '#title' => t('Breadcrumbs'),
-    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/breadcrumbs',
+    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/3',
     '#attributes' => array('class' => array('use-ajax')),
   );
 
@@ -81,16 +84,17 @@ function path_breadcrumbs_edit_page($path_breadcrumb) {
     $rendered_links[] = render($link);
   }
 
-  $page['menu'] = array(
-    '#markup' => theme('item_list', array('items' => $rendered_links)),
+  $page['content']['menu'] = array(
+    '#markup' => '<div id="path-breadcrumbs-ui-menu">' . theme('item_list', array('items' => $rendered_links)) . '</div>',
   );
 
-  $form = drupal_get_form('path_breadcrumbs_edit_form', $path_breadcrumb, 1);
-  $page['edit_form'] = array(
+  $form = drupal_get_form('path_breadcrumbs_ui_edit_form', $path_breadcrumb, 1);
+  $page['content']['edit_form'] = array(
     '#markup' => render($form),
   );
 
   drupal_add_library('system', 'drupal.ajax');
+  drupal_add_css(drupal_get_path('module', 'path_breadcrumbs_ui') . '/css/path_breadcrumbs_ui.css');
 
   return $page;
 }
@@ -98,22 +102,11 @@ function path_breadcrumbs_edit_page($path_breadcrumb) {
 /**
  * Ajax callback for path_breadcrumbs EDIT links.
  */
-function path_breadcrumbs_edit_form_ajax_links($breadcrumb, $link_type) {
+function path_breadcrumbs_ui_edit_form_ajax_links($breadcrumb, $step) {
 
-  $step = 1;
-  if ($link_type == 'basic') {
-    $step = 1;
-  }
-  elseif ($link_type == 'arguments') {
-    $step = 2;
-  }
-  elseif ($link_type == 'breadcrumbs') {
-    $step = 3;
-  }
-
-  $form = drupal_get_form('path_breadcrumbs_edit_form', $breadcrumb, $step);
+  $form = drupal_get_form('path_breadcrumbs_ui_edit_form', $breadcrumb, $step);
 
   $commands = array();
-  $commands[] = ajax_command_html('#path-breadcrumbs-edit-form-wrapper', render($form));
+  $commands[] = ajax_command_html('#path-breadcrumbs-ui-edit-form-wrapper', render($form));
   return array('#type' => 'ajax', '#commands' => $commands);
 }

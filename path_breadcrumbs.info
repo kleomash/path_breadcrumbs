@@ -1,3 +1,4 @@
-name = Path breadcrubms
-description = Provides custom breadcrubms for static page
+name = Path breadcrumbs
+description = Allow to create custom breadcrumbs for all pages on the site using contexts.
 core = 7.x
+package = Path breadcrumbs
