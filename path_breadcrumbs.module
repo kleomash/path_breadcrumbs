@@ -163,6 +163,9 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
     // Get contexts from arguments.
     foreach ($data['arguments'] as $keyword => $arg) {
       $argument = ctools_get_argument($arg['argument']);
+      if (isset($arg['settings'])) {
+        $argument = array_merge($argument, $arg['settings']);
+      }
       $context  = call_user_func($argument['context'], arg($arg['position']), $argument);
       $context->keyword = $keyword;
       $contexts[] = $context;
@@ -336,8 +339,10 @@ function _path_breadcrumbs_form_step_basic_settings(&$form, &$form_state) {
 
   $form['#validate'][] = '_path_breadcrumbs_form_step_basic_settings_validate';
 
-  _path_breadcrumbs_form_apply_default_values($form, $form_state);
-  _path_breadcrumbs_form_attach_buttons($form, array('next'));
+  if (isset($form_state['storage']['machine_name'])) {
+    _path_breadcrumbs_form_apply_default_values($form, $form_state['storage']['machine_name']);
+  }
+  _path_breadcrumbs_form_attach_buttons($form, array('next'), 'path_breadcrumbs_add_form');
 }
 
 /**
@@ -442,7 +447,7 @@ function _path_breadcrumbs_form_step_arguments_selection(&$form, &$form_state) {
     }
   }
 
-  _path_breadcrumbs_form_attach_buttons($form, array('next', 'prev'));
+  _path_breadcrumbs_form_attach_buttons($form, array('next', 'prev'), 'path_breadcrumbs_add_form');
 }
 
 /**
@@ -510,7 +515,7 @@ function _path_breadcrumbs_form_step_breadcrumbs_settings(&$form, &$form_state) 
     );
   }
 
-  _path_breadcrumbs_form_attach_buttons($form, array('prev', 'finish'));
+  _path_breadcrumbs_form_attach_buttons($form, array('prev', 'finish'), 'path_breadcrumbs_add_form');
 }
 
 /**
@@ -553,13 +558,16 @@ function theme_path_breadcrumbs_form_step_arguments_selection_table($vars) {
 /**
  * Add default values to form if presented.
  */
-function _path_breadcrumbs_form_apply_default_values(&$form, $form_state) {
-  if (!empty($form_state['storage']['machine_name'])) {
-    $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
-    if (!empty($breadcrumb)) {
-      foreach ($form as $key => $value) {
-        if (isset($breadcrumb->{$key})) {
-          $form[$key]['#default_value'] = $breadcrumb->{$key};
+function _path_breadcrumbs_form_apply_default_values(&$form, $path_name) {
+  $breadcrumb = path_breadcrumbs_object_cache_get($path_name);
+  if (!empty($breadcrumb)) {
+    foreach ($form as $key => $value) {
+      if (isset($breadcrumb->{$key}) && is_string($breadcrumb->{$key})) {
+        $form[$key]['#default_value'] = $breadcrumb->{$key};
+      }
+      elseif (isset($breadcrumb->{$key}) && is_array($breadcrumb->{$key})) {
+        foreach ($breadcrumb->{$key} as $array_key => $value) {
+          $form[$key][$array_key]['#default_value'] = $value;
         }
       }
     }
@@ -569,13 +577,15 @@ function _path_breadcrumbs_form_apply_default_values(&$form, $form_state) {
 /**
  * Attach ajax buttons to form.
  */
-function _path_breadcrumbs_form_attach_buttons(&$form, $buttons = array()) {
+function _path_breadcrumbs_form_attach_buttons(&$form, $buttons = array(), $form_name) {
+
+  $form_wrapper = str_replace('_', '-', $form_name);
 
   $base = array(
     '#type' => 'submit',
     '#ajax' => array(
-      'callback' => 'path_breadcrumbs_add_form_ajax_callback',
-      'wrapper' => 'path-breadcrumbs-add-form-wrapper',
+      'callback' => $form_name . '_ajax_callback',
+      'wrapper' => $form_wrapper . '-wrapper',
     ),
   );
 
@@ -588,7 +598,7 @@ function _path_breadcrumbs_form_attach_buttons(&$form, $buttons = array()) {
       '#value' => t('Back'),
       // Do not validate form when BACK button clicked.
       '#limit_validation_errors' => array(),
-      '#submit' => array('path_breadcrumbs_add_form_submit'),
+      '#submit' => array($form_name . '_submit'),
     ) + $base;
   }
 
@@ -610,9 +620,9 @@ function _path_breadcrumbs_form_attach_buttons(&$form, $buttons = array()) {
  */
 function path_breadcrumbs_argument_context_form($form, $form_state, $path_name, $keyword) {
 
-  $form['#prefix'] = '<div id="path-breadcrumbs-argument-context-form">';
+  $form['#prefix'] = '<div id="path-breadcrumbs-argument-context-form-wrapper">';
   $form['#suffix'] = '</div>';
-  $form['#tree'] = TRUE;
+  $form['#tree']   = TRUE;
 
   $form['path_name'] = array(
     '#type' => 'value',
@@ -634,6 +644,7 @@ function path_breadcrumbs_argument_context_form($form, $form_state, $path_name, 
 
   switch ($step) {
     case 1:
+
       $plugins = ctools_get_arguments();
 
       $options = array();
@@ -650,28 +661,17 @@ function path_breadcrumbs_argument_context_form($form, $form_state, $path_name, 
         '#options' => $options,
       );
 
-      if (!empty($form_state['default_argument'])) {
-        $form['argument']['#default_value'] = $form_state['default_argument'];
+      $breadcrumb = path_breadcrumbs_object_cache_get($path_name);
+      if (isset($breadcrumb->arguments[$keyword])) {
+        $form['argument']['#default_value'] = $breadcrumb->arguments[$keyword]['argument'];
       }
 
-      $form['actions'] = array(
-        '#type' => 'actions',
-      );
-
-      $form['actions']['next'] = array(
-        '#type' => 'submit',
-        '#value' => t('Next'),
-        '#ajax' => array(
-          'callback' => 'path_breadcrumbs_argument_context_form_ajax_callback',
-          'wrapper' => 'path-breadcrumbs-argument-context-form',
-        ),
-      );
+      _path_breadcrumbs_form_attach_buttons($form, array('next'), 'path_breadcrumbs_argument_context_form');
 
       break;
 
     case 2:
 
-      // @todo: написать красивее.
       $plugin = ctools_get_argument($form_state['storage']['argument']);
       if ($function = (string) ctools_plugin_get_function($plugin, 'settings form')) {
         $settings_form = $settings_form_state = array();
@@ -685,23 +685,8 @@ function path_breadcrumbs_argument_context_form($form, $form_state, $path_name, 
         );
       }
 
-      $form['actions']['prev'] = array(
-        '#type' => 'submit',
-        '#value' => t('Back'),
-        '#ajax' => array(
-          'callback' => 'path_breadcrumbs_argument_context_form_ajax_callback',
-          'wrapper' => 'path-breadcrumbs-argument-context-form',
-        ),
-      );
-
-      $form['actions']['finish'] = array(
-        '#type' => 'submit',
-        '#value' => t('Done'),
-        '#ajax' => array(
-          'callback' => 'path_breadcrumbs_argument_context_form_ajax_callback',
-          'wrapper' => 'path-breadcrumbs-argument-context-form',
-        ),
-      );
+      _path_breadcrumbs_form_attach_buttons($form, array('prev', 'finish'), 'path_breadcrumbs_argument_context_form');
+      _path_breadcrumbs_form_apply_default_values($form, $path_name);
 
       break;
   }
@@ -724,6 +709,11 @@ function path_breadcrumbs_argument_context_form_submit($form, &$form_state) {
   }
 
   $form_state['storage'] = array_merge($form_state['storage'], $values);
+
+  // Merge data into cache storage.
+  $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['path_name']);
+  $breadcrumb = array_merge((array) $breadcrumb, $values);
+  path_breadcrumbs_object_cache_set($form_state['storage']['path_name'], $breadcrumb);
 
   // Switch current step.
   if (isset($actions['next']) && $values['op'] == $actions['next']) {
