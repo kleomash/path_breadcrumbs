@@ -12,37 +12,141 @@ function path_breadcrumbs_schema() {
   $schema['path_breadcrumbs'] = array(
     'fields' => array(
       'path_id' => array(
+        'description' => t("Breadcrumb's variant unique identifier"),
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE
       ),
+      'machine_name' => array(
+        'description' => t("Breadcrumb's variant machine name"),
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
       'name' => array(
+        'description' => t("Breadcrumb's variant human-readable name"),
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
       ),
       'path' => array(
+        'description' => t('URL where breadcrumb should be shown'),
         'type' => 'varchar',
-        'length' => 128,
+        'length' => 256,
         'not null' => TRUE,
       ),
-      'titles' => array(
+      'data' => array(
+        'description' => t('Serialized data of breadcrumb'),
         'type' => 'blob',
         'not null' => TRUE,
         'size' => 'big',
       ),
-      'paths' => array(
-        'type' => 'blob',
-        'not null' => TRUE,
-        'size' => 'big',
-      ),
-      'home' => array(
+      'weight' => array(
+        'description' => t('Breadcrumb weight related to other breadcrumbs'),
         'type' => 'int',
         'not null' => TRUE,
-        'default' => 1,
+        'default' => 0,
+      ),
+      'disabled' => array(
+        'description' => t('Shows enabled this variant or not'),
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
       ),
     ),
     'primary key' => array('path_id'),
   );
   return $schema;
+}
+
+/**
+ * Migrate data from 7.x-1.x to 7.x-2.x.
+ */
+function path_breadcrumbs_update_7200(&$sandbox) {
+
+  // Select all data from old table.
+  $variants = db_select('path_breadcrumbs', 'p')
+    ->fields('p')
+    ->execute();
+
+  $new_variables = array();
+  foreach ($variants as $variant) {
+    // Replace '*' in path on a new argument placeholder.
+    $path_arguments = explode('/', $variant->path);
+    $new_arguments = array();
+    foreach ($path_arguments as $arg) {
+      if ($arg == '*') {
+        $new_arguments[] = '%argument';
+      }
+      else {
+        $new_arguments[] = $arg;
+      }
+    }
+    $variant->path = implode('/', $new_arguments);
+
+    // Create machine name for varian namet.
+    $variant->machine_name = drupal_strtolower(preg_replace('/[^a-zA-Z]+/i', '_', $variant->name));
+
+    $variant->data = serialize(array(
+      'titles'        => $variant->titles,
+      'paths'         => $variant->paths,
+      'home'          => $variant->home,
+      'translatable'  => 1,
+      'arguments'     => array(),
+    ));
+
+    $new_variables[] = $variant;
+  }
+
+  // Drop old fields.
+  db_drop_field('path_breadcrumbs', 'titles');
+  db_drop_field('path_breadcrumbs', 'paths');
+  db_drop_field('path_breadcrumbs', 'home');
+
+  // Add new field to the table.
+  db_add_field('path_breadcrumbs', 'machine_name', array(
+    'description' => t("Breadcrumb's variant machine name"),
+    'type' => 'varchar',
+    'length' => 64,
+    'not null' => TRUE,
+  ));
+
+  db_add_field('path_breadcrumbs', 'data', array(
+    'description' => t('Serialized data of breadcrumb'),
+    'type' => 'blob',
+    'not null' => TRUE,
+    'size' => 'big',
+  ));
+
+  db_add_field('path_breadcrumbs', 'weight', array(
+    'description' => t('Breadcrumb weight related to other breadcrumbs'),
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+
+  db_add_field('path_breadcrumbs', 'disabled', array(
+    'description' => t('Shows enabled this variant or not'),
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+
+  // Insert old data into updated table.
+  foreach ($new_variables as $variant) {
+    db_merge('path_breadcrumbs')
+      ->key(array(
+        'path_id' => $variant->path_id,
+      ))
+      ->fields(array(
+        'name' => $variant->name,
+        'machine_name' => $variant->machine_name,
+        'path' => $variant->path,
+        'data' => $variant->data,
+        'weight' => $variant->path_id,
+        'disabled' => 0,
+      ));
+  }
+
+  return t('Path breadcrumbs successfully converted old data to a new one.');
 }
