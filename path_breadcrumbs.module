@@ -35,9 +35,19 @@ function path_breadcrumbs_menu() {
     'access arguments' => array('administer path breadcrumbs'),
   );
 
-  $items['admin/structure/path-breadcrumbs/arguments/%/%'] = array(
+  $items['admin/structure/path-breadcrumbs/arguments/settings/%/%'] = array(
     'page callback' => 'path_breadcrumbs_configure_arguments_page',
-    'page arguments' => array(4, 5),
+    'page arguments' => array(5, 6),
+    'access arguments' => array('administer path breadcrumbs'),
+    'delivery callback' => 'ajax_deliver',
+    'theme callback' => 'ajax_base_page_theme',
+    'type' => MENU_CALLBACK,
+    'file' => 'path_breadcrumbs.pages.inc',
+  );
+
+  $items['admin/structure/path-breadcrumbs/arguments/change/%/%'] = array(
+    'page callback' => 'path_breadcrumbs_change_arguments_page',
+    'page arguments' => array(5, 6),
     'access arguments' => array('administer path breadcrumbs'),
     'delivery callback' => 'ajax_deliver',
     'theme callback' => 'ajax_base_page_theme',
@@ -76,65 +86,14 @@ function path_breadcrumbs_theme(&$items, $task) {
  */
 function path_breadcrumbs_page_alter(&$page) {
 
-
-$a = array_fill(0, 3000000, 123);
-for ($i = 0; $i < count($a); $i++) {
-
-}
-
   // See if current page has path breadcrumbs.
-  $path = request_path();
-  $variant = path_breadcrumbs_load_variant($path);
+  $variant = path_breadcrumbs_load_variant(request_path());
 
   // If object with breadcrumbs was loaded - build breadcrumbs.
   if ($variant) {
     $breadcrumbs = _path_breadcrumbs_build_breadcrumbs($variant);
     drupal_set_breadcrumb($breadcrumbs);
   }
-}
-
-/**
- * Builds array with breadcrumbs.
- */
-function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
-  $breadcrumb = array();
-
-  $data = $path_breadcrumb->data;
-
-  // Add HOME link.
-  if ($data['home'] == TRUE) {
-    $breadcrumb[] = l(t('Home'), '<front>');
-  }
-
-  if (!empty($data['arguments'])) {
-    ctools_include('context');
-    $contexts = array();
-    foreach ($data['arguments'] as $keyword => $argument) {
-      $arg_plugin = ctools_get_argument($argument['argument']);
-      $function = $arg_plugin['context'];
-      if (function_exists($function)) {
-        $context = $function(arg($argument['position']), $arg_plugin);
-        $context->keyword = $keyword;
-        $contexts[] = $context;
-      }
-    }
-    $data['titles'] = ctools_context_keyword_substitute($data['titles'], array(), $contexts);
-    $data['paths']  = ctools_context_keyword_substitute($data['paths'], array(), $contexts);
-  }
-
-  $titles = explode("\n", $data['titles']);
-  $paths  = explode("\n", $data['paths']);
-
-  foreach ($titles as $key => $title) {
-    if (isset($paths[$key]) && $paths[$key] != '<none>') {
-      $breadcrumb[] = l(t(check_plain($title)), $paths[$key]);
-    }
-    elseif (isset($paths[$key]) && $paths[$key] == '<none>') {
-      $breadcrumb[] = check_plain($title);
-    }
-  }
-
-  return $breadcrumb;
 }
 
 /**
@@ -146,10 +105,16 @@ function path_breadcrumbs_load_variant($path) {
     return FALSE;
   }
 
+  // Create sql pattern from url.
   $path_vars = explode('/', $path);
-  $sql_path = array_fill(0, sizeof($path_vars) - 1, '%');
-  array_unshift($sql_path, $path_vars[0]);
-  $sql_replacements = implode('/', $sql_path);
+  if ($args_count = (sizeof($path_vars) - 1)) {
+    $sql_path = array_fill(0, $args_count, '%');
+    array_unshift($sql_path, $path_vars[0]);
+    $sql_replacements = implode('/', $sql_path);
+  }
+  else {
+    $sql_replacements = $path;
+  }
 
   $variants = db_select('path_breadcrumbs', 'p')
     ->fields('p',  array('path_id', 'path'))
@@ -174,6 +139,60 @@ function path_breadcrumbs_load_variant($path) {
   }
 
   return FALSE;
+}
+
+/**
+ * Builds array with breadcrumbs.
+ */
+function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
+  $breadcrumb = array();
+
+  $data = $path_breadcrumb->data;
+
+  // Add HOME link.
+  if ($data['home'] == TRUE) {
+    $breadcrumb[] = l(t('Home'), '<front>');
+  }
+
+  if (!empty($data['arguments'])) {
+
+    // Include ctools library for contexts.
+    ctools_include('context');
+    $contexts = array();
+
+    // Get contexts from arguments.
+    foreach ($data['arguments'] as $keyword => $arg) {
+      $argument = ctools_get_argument($arg['argument']);
+      $context  = call_user_func($argument['context'], arg($arg['position']), $argument);
+      $context->keyword = $keyword;
+      $contexts[] = $context;
+    }
+
+    // Replace placeholders by current values.
+    $data['titles'] = ctools_context_keyword_substitute($data['titles'], array(), $contexts);
+    $data['paths']  = ctools_context_keyword_substitute($data['paths'], array(), $contexts);
+  }
+
+  $titles = explode("\n", $data['titles']);
+  $paths  = explode("\n", $data['paths']);
+
+  foreach ($titles as $key => $title) {
+
+    // Translate breadcrumb title if needed.
+    if ($data['translatable'] == TRUE) {
+      $title = t($title);
+    }
+
+    // Set a breadcrumb as a link or as a plain text.
+    if (isset($paths[$key]) && $paths[$key] != '<none>') {
+      $breadcrumb[] = l(check_plain($title), $paths[$key]);
+    }
+    elseif (isset($paths[$key]) && $paths[$key] == '<none>') {
+      $breadcrumb[] = check_plain($title);
+    }
+  }
+
+  return $breadcrumb;
 }
 
 /**
@@ -380,9 +399,9 @@ function _path_breadcrumbs_form_step_arguments_selection(&$form, &$form_state) {
     // Get context from cached data if presented.
     if (!empty($breadcrumb->arguments[$keyword])) {
       ctools_include('context');
-      $argument = ctools_get_argument($breadcrumb->arguments[$keyword]['argument']);
-      if (isset($argument['title'])) {
-        $context_title = $argument['title'];
+      $plugin = ctools_get_argument($breadcrumb->arguments[$keyword]['argument']);
+      if (isset($plugin['title'])) {
+        $context_title = $plugin['title'];
       }
     }
 
@@ -394,7 +413,7 @@ function _path_breadcrumbs_form_step_arguments_selection(&$form, &$form_state) {
     $form['table']['argument'][$keyword]['change-url'] = array(
       '#attributes' => array('class' => array("page-manager-context-$keyword-change-url")),
       '#type' => 'hidden',
-      '#value' => url('admin/structure/path-breadcrumbs/arguments/' . $breadcrumb->machine_name . '/' . $keyword, array('absolute' => TRUE)),
+      '#value' => url('admin/structure/path-breadcrumbs/arguments/settings/' . $breadcrumb->machine_name . '/' . $keyword, array('absolute' => TRUE)),
     );
 
     $form['table']['argument'][$keyword]['change'] = array(
@@ -403,6 +422,24 @@ function _path_breadcrumbs_form_step_arguments_selection(&$form, &$form_state) {
       '#attributes' => array('class' => array('ctools-use-modal')),
       '#id' => "page-manager-context-$keyword-change",
     );
+
+    // Only show the button if this has a settings form available.
+    if (!empty($plugin)) {
+
+      // The URL for this ajax button.
+      $form['table']['argument'][$keyword]['settings-url'] = array(
+        '#attributes' => array('class' => array("page-manager-context-$keyword-settings-url")),
+        '#type' => 'hidden',
+        '#value' => url('admin/structure/path-breadcrumbs/arguments/change/' . $breadcrumb->machine_name . '/' . $keyword, array('absolute' => TRUE)),
+      );
+
+      $form['table']['argument'][$keyword]['settings'] = array(
+        '#type' => 'submit',
+        '#value' => t('Settings'),
+        '#attributes' => array('class' => array('ctools-use-modal')),
+        '#id' => "page-manager-context-$keyword-settings",
+      );
+    }
   }
 
   _path_breadcrumbs_form_attach_buttons($form, array('next', 'prev'));
@@ -485,6 +522,7 @@ function theme_path_breadcrumbs_form_step_arguments_selection_table($vars) {
     array('data' => t('Argument')),
     array('data' => t('Position in path')),
     array('data' => t('Context assigned')),
+    array('data' => t('Operations')),
   );
 
   $form = $vars['form'];
@@ -493,11 +531,12 @@ function theme_path_breadcrumbs_form_step_arguments_selection_table($vars) {
 
   $rows = array();
   foreach (element_children($form['argument']) as $key) {
-    $row    = array();
-    $row[]  = check_plain($form['argument'][$key]['#keyword']);
-    $row[]  = check_plain($form['argument'][$key]['#position']);
-    $row[]  = $form['argument'][$key]['#context'] . ' ' . drupal_render($form['argument'][$key]);
-    $rows[] = array('data' => $row);
+    $row   = array();
+    $row[] = check_plain($form['argument'][$key]['#keyword']);
+    $row[] = check_plain($form['argument'][$key]['#position']);
+    $row[] = $form['argument'][$key]['#context'] . ' &nbsp; ' . drupal_render($form['argument'][$key]['change']);
+    $row[] = drupal_render($form['argument'][$key]['settings']) . drupal_render($form['argument'][$key]);
+    $rows[]  = array('data' => $row);
   }
 
   if (!$rows) {
@@ -569,38 +608,174 @@ function _path_breadcrumbs_form_attach_buttons(&$form, $buttons = array()) {
 /**
  * Form that return availible matches for path arguments.
  */
-function path_breadcrumbs_argument_context_form($form, $form_state) {
-  ctools_include('context');
-  $plugins = ctools_get_arguments();
+function path_breadcrumbs_argument_context_form($form, $form_state, $path_name, $keyword) {
 
-  $options = array();
-  foreach ($plugins as $id => $plugin) {
-    if (empty($plugin['no ui'])) {
-      $options[$id] = $plugin['title'];
+  $form['#prefix'] = '<div id="path-breadcrumbs-argument-context-form">';
+  $form['#suffix'] = '</div>';
+  $form['#tree'] = TRUE;
+
+  $form['path_name'] = array(
+    '#type' => 'value',
+    '#value' => $path_name,
+  );
+
+  $form['keyword'] = array(
+    '#type' => 'value',
+    '#value' => $keyword,
+  );
+
+  // Get current form step.
+  if (!isset($form_state['storage']['step'])) {
+    $form_state['storage']['step'] = 1;
+  }
+  $step = $form_state['storage']['step'];
+
+  ctools_include('context');
+
+  switch ($step) {
+    case 1:
+      $plugins = ctools_get_arguments();
+
+      $options = array();
+      foreach ($plugins as $id => $plugin) {
+        if (empty($plugin['no ui'])) {
+          $options[$id] = $plugin['title'];
+        }
+      }
+      asort($options);
+
+      $options = array('' => t('No context selected')) + $options;
+      $form['argument'] = array(
+        '#type' => 'radios',
+        '#options' => $options,
+      );
+
+      if (!empty($form_state['default_argument'])) {
+        $form['argument']['#default_value'] = $form_state['default_argument'];
+      }
+
+      $form['actions'] = array(
+        '#type' => 'actions',
+      );
+
+      $form['actions']['next'] = array(
+        '#type' => 'submit',
+        '#value' => t('Next'),
+        '#ajax' => array(
+          'callback' => 'path_breadcrumbs_argument_context_form_ajax_callback',
+          'wrapper' => 'path-breadcrumbs-argument-context-form',
+        ),
+      );
+
+      break;
+
+    case 2:
+
+      // @todo: написать красивее.
+      $plugin = ctools_get_argument($form_state['storage']['argument']);
+      if ($function = (string) ctools_plugin_get_function($plugin, 'settings form')) {
+        $settings_form = $settings_form_state = array();
+        $function($settings_form, $settings_form_state);
+        $form += $settings_form;
+      }
+      else {
+        $form['message'] = array(
+          '#type' => 'item',
+          '#markup' => t("Current argument doesn't contains settings form"),
+        );
+      }
+
+      $form['actions']['prev'] = array(
+        '#type' => 'submit',
+        '#value' => t('Back'),
+        '#ajax' => array(
+          'callback' => 'path_breadcrumbs_argument_context_form_ajax_callback',
+          'wrapper' => 'path-breadcrumbs-argument-context-form',
+        ),
+      );
+
+      $form['actions']['finish'] = array(
+        '#type' => 'submit',
+        '#value' => t('Done'),
+        '#ajax' => array(
+          'callback' => 'path_breadcrumbs_argument_context_form_ajax_callback',
+          'wrapper' => 'path-breadcrumbs-argument-context-form',
+        ),
+      );
+
+      break;
+  }
+
+  return $form;
+}
+
+/**
+ * Submit callback for path_breadcrumbs_argument_context_form.
+ *
+ * @param $form
+ * @param $form_state
+ */
+function path_breadcrumbs_argument_context_form_submit($form, &$form_state) {
+  $values  = $form_state['values'];
+  $actions = $form_state['values']['actions'];
+
+  if (empty($form_state['storage'])) {
+    $form_state['storage'] = array();
+  }
+
+  $form_state['storage'] = array_merge($form_state['storage'], $values);
+
+  // Switch current step.
+  if (isset($actions['next']) && $values['op'] == $actions['next']) {
+    $form_state['storage']['step']++;
+  }
+  elseif (isset($actions['prev']) && $values['op'] == $actions['prev']) {
+    $form_state['storage']['step']--;
+  }
+  elseif (isset($actions['finish']) && $values['op'] == $actions['finish']) {
+    $form_state['rebuild'] = FALSE;
+  }
+
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Ajax callback for path_breadcrumbs_argument_context_form .
+ */
+function path_breadcrumbs_argument_context_form_ajax_callback($form, $form_state) {
+
+  if (!form_get_errors()) {
+
+    $values  = $form_state['values'];
+    $actions = $form_state['values']['actions'];
+    $keyword = $form_state['storage']['keyword'];
+
+    if (isset($actions['finish']) && $values['op'] == $actions['finish']) {
+      // Update cache data.
+      $breadcrumb = path_breadcrumbs_object_cache_get($values['path_name']);
+      $breadcrumb->arguments[$keyword] = array(
+        'argument' => $form_state['storage']['argument'],
+        'position' => $breadcrumb->keywords[$keyword],
+        'settings' => $values['settings'],
+      );
+      path_breadcrumbs_object_cache_set($form_state['storage']['path_name'], $breadcrumb);
+
+      // Rebuild second step of path breadcrumbs add_form.
+      $add_form_state = array(
+        'storage' => array(
+          'step' => 2,
+          'machine_name' => $values['path_name'],
+        ));
+
+      $form = drupal_build_form('path_breadcrumbs_add_form', $add_form_state);
+
+      // Include additinal ajax commands.
+      $commands[] = ajax_command_replace('#path-breadcrumbs-argument-table', drupal_render($form['table']));
+      $commands[] = ctools_modal_command_dismiss();
+
+      return array('#type' => 'ajax', '#commands' => $commands);
     }
   }
-
-  asort($options);
-
-  $options = array('' => t('No context selected')) + $options;
-
-  $form['argument'] = array(
-    '#type' => 'radios',
-    '#options' => $options,
-  );
-
-  if (!empty($form_state['default_argument'])) {
-    $form['argument']['#default_value'] = $form_state['default_argument'];
-  }
-
-  $form['actions'] = array(
-    '#type' => 'actions',
-  );
-
-  $form['actions']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Done'),
-  );
 
   return $form;
 }
