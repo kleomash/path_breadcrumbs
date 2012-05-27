@@ -107,6 +107,6 @@ function path_breadcrumbs_ui_edit_form_ajax_links($breadcrumb, $step) {
   $form = drupal_get_form('path_breadcrumbs_ui_edit_form', $breadcrumb, $step);
 
   $commands = array();
-  $commands[] = ajax_command_html('#path-breadcrumbs-ui-edit-form-wrapper', render($form));
+  $commands[] = ajax_command_replace('#path-breadcrumbs-ui-edit-form-wrapper', render($form));
   return array('#type' => 'ajax', '#commands' => $commands);
 }
