@@ -92,9 +92,7 @@ function path_breadcrumbs_update_7200(&$sandbox) {
     $variant->path = implode('/', $new_path);
 
     // Create machine name from variant name.
-    $search = array('!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '+', '=', '/', ' ');
-    $replace = array_fill(0, count($search), '_');
-    $variant->machine_name = drupal_strtolower(str_replace($search, $replace, $variant->name));
+    $variant->machine_name = 'path_breadcrumbs_' . $variant->path_id;
 
     // Build data array.
     $variant->data = serialize(array(
