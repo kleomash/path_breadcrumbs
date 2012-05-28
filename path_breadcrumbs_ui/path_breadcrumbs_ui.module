@@ -58,13 +58,13 @@ function path_breadcrumbs_ui_menu() {
   );
 
   $items['admin/structure/path-breadcrumbs/enable/%path_breadcrumbs'] = array(
-      'title' => 'Enable path breadcrumbs',
-      'page callback' => 'path_breadcrumbs_ui_enable_breadcrumbs_page',
-      'page arguments' => array(4),
-      'access arguments' => array('administer path breadcrumbs'),
-      'type' => MENU_CALLBACK,
-      'file' => 'path_breadcrumbs_ui.pages.inc',
-    );
+    'title' => 'Enable path breadcrumbs',
+    'page callback' => 'path_breadcrumbs_ui_enable_breadcrumbs_page',
+    'page arguments' => array(4),
+    'access arguments' => array('administer path breadcrumbs'),
+    'type' => MENU_CALLBACK,
+    'file' => 'path_breadcrumbs_ui.pages.inc',
+  );
 
   $items['admin/structure/path-breadcrumbs/arguments/settings/%/%'] = array(
     'page callback' => 'path_breadcrumbs_ui_configure_arguments_page',
@@ -123,6 +123,14 @@ function path_breadcrumbs_ui_add_form($form, &$form_state) {
 
   $form['#prefix'] = '<div id="path-breadcrumbs-ui-add-form-wrapper">';
   $form['#suffix'] = '</div>';
+
+  $links = array();
+  $links[] = t('Basic settings');
+  $links[] = t('Choose arguments');
+  $links[] = t('Breadcrumbs settings');
+  $form['navigation'] = array(
+    '#markup' => implode('>', $links),
+  );
 
   if (!isset($form_state['storage']['step'])) {
     $form_state['storage']['step'] = 1;
