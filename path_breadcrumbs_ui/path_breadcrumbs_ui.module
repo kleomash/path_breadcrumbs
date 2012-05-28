@@ -135,18 +135,23 @@ function path_breadcrumbs_ui_add_form($form, &$form_state) {
   $form['#prefix'] = '<div id="path-breadcrumbs-ui-add-form-wrapper">';
   $form['#suffix'] = '</div>';
 
-  $links = array();
-  $links[] = t('Basic settings');
-  $links[] = t('Choose arguments');
-  $links[] = t('Breadcrumbs settings');
-  $form['navigation'] = array(
-    '#markup' => implode('>', $links),
-  );
-
   if (!isset($form_state['storage']['step'])) {
     $form_state['storage']['step'] = 1;
   }
   $step = $form_state['storage']['step'];
+
+  $navigation = array();
+  $navigation[] = t('Basic settings');
+  $navigation[] = t('Choose arguments');
+  $navigation[] = t('Breadcrumbs settings');
+
+  // Wrap current navigation item in <span>.
+  $navigation[$step-1] = '<span class="current-nav-item">' . $navigation[$step-1] . '</span>';
+
+  $form['navigation'] = array(
+    '#type' => 'item',
+    '#markup' => implode(" -> ", $navigation),
+  );
 
   $form_build_function = '';
   switch ($step) {
@@ -175,6 +180,8 @@ function path_breadcrumbs_ui_add_form($form, &$form_state) {
   }
 
   $form['#submit'][] = 'path_breadcrumbs_ui_add_form_submit';
+
+  $form['#attached']['css'][] = drupal_get_path('module', 'path_breadcrumbs_ui') . '/css/path_breadcrumbs_ui.css';
 
   return $form;
 }
@@ -360,13 +367,13 @@ function _path_breadcrumbs_ui_form_step_arguments_selection(&$form, &$form_state
 
   if (isset($form_state['storage']['machine_name'])) {
     $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
-
     // Merge data of arguments and keywords.
     if (!empty($breadcrumb->keywords)) {
       foreach ($breadcrumb->keywords as $keyword => $position) {
         $breadcrumb->arguments[$keyword]['position'] = $position['position'];
       }
     }
+    path_breadcrumbs_object_cache_set($form_state['storage']['machine_name'], $breadcrumb);
   }
 
   if (empty($breadcrumb)) {

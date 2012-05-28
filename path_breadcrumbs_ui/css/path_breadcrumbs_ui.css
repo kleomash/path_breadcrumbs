@@ -1,4 +1,12 @@
 /**
+ * Path breadcrumbs ui add form styles.
+ */
+.current-nav-item {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+/**
  * Path breadcrumbs ui edit form styles
  */
 #path-breadcrumbs-ui-wrapper {
