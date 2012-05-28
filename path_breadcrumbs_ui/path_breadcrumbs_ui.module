@@ -26,7 +26,8 @@ function path_breadcrumbs_ui_menu() {
     'page callback' => 'path_breadcrumbs_ui_edit_page',
     'page arguments' => array(4),
     'access arguments' => array('administer path breadcrumbs'),
-    'file' => 'path_breadcrumbs_ui.pages.inc'
+    'file' => 'path_breadcrumbs_ui.pages.inc',
+    'type' => MENU_CALLBACK,
   );
 
   $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs/ajax/%'] = array(
@@ -40,12 +41,30 @@ function path_breadcrumbs_ui_menu() {
   );
 
   $items['admin/structure/path-breadcrumbs/delete/%path_breadcrumbs'] = array(
-    'title callback' => 'path_breadcrumbs_ui_edit_page_title',
-    'title arguments' => array(4, 'delete'),
+    'title' => 'Delete path breadcrumbs',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('path_breadcrumbs_ui_delete_form', 4),
     'access arguments' => array('administer path breadcrumbs'),
+    'type' => MENU_CALLBACK,
   );
+
+  $items['admin/structure/path-breadcrumbs/disable/%path_breadcrumbs'] = array(
+    'title' => 'Disable path breadcrumbs',
+    'page callback' => 'path_breadcrumbs_ui_disable_breadcrumbs_page',
+    'page arguments' => array(4),
+    'access arguments' => array('administer path breadcrumbs'),
+    'type' => MENU_CALLBACK,
+    'file' => 'path_breadcrumbs_ui.pages.inc',
+  );
+
+  $items['admin/structure/path-breadcrumbs/enable/%path_breadcrumbs'] = array(
+      'title' => 'Enable path breadcrumbs',
+      'page callback' => 'path_breadcrumbs_ui_enable_breadcrumbs_page',
+      'page arguments' => array(4),
+      'access arguments' => array('administer path breadcrumbs'),
+      'type' => MENU_CALLBACK,
+      'file' => 'path_breadcrumbs_ui.pages.inc',
+    );
 
   $items['admin/structure/path-breadcrumbs/arguments/settings/%/%'] = array(
     'page callback' => 'path_breadcrumbs_ui_configure_arguments_page',

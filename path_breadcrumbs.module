@@ -38,6 +38,7 @@ function path_breadcrumbs_load_variant($path) {
   $variants = db_select('path_breadcrumbs', 'p')
     ->fields('p',  array('path_id', 'path'))
     ->condition('p.path', $sql_replacements, 'LIKE')
+    ->condition('p.disabled', 0)
     ->orderBy('p.weight')
     ->execute();
 
@@ -85,7 +86,7 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
         if (isset($arg['settings'])) {
           $argument = array_merge($argument, $arg['settings']);
         }
-        $context  = call_user_func($argument['context'], arg($arg['position']), $argument);
+        $context = call_user_func($argument['context'], arg($arg['position']), $argument);
         $context->keyword = $keyword;
         $contexts[] = $context;
       }
@@ -125,7 +126,7 @@ function path_breadcrumbs_save($breadcrumb) {
 
   // Remove spaces and empty lines in breadcrumb titles.
   $titles_output = array();
-  $titles = explode("\r\n", $breadcrumb->titles);
+  $titles = explode("\n", $breadcrumb->titles);
   foreach ($titles as $title) {
     if ($trimmed_title = trim($title)) {
       $titles_output[] = $trimmed_title;
@@ -134,7 +135,7 @@ function path_breadcrumbs_save($breadcrumb) {
 
   // Remove spaces and empty lines in breadcrumb titles.
   $paths_output = array();
-  $paths = explode("\r\n", $breadcrumb->paths);
+  $paths = explode("\n", $breadcrumb->paths);
   foreach ($paths as $path) {
     if ($trimmed_path = trim($path)) {
       $paths_output[] = $trimmed_path;
@@ -147,8 +148,8 @@ function path_breadcrumbs_save($breadcrumb) {
     'machine_name' => $breadcrumb->machine_name,
     'path'         => $breadcrumb->path,
     'data'         => serialize(array(
-      'titles'        => implode("\r\n", $titles_output),
-      'paths'         => implode("\r\n", $paths_output),
+      'titles'        => implode("\n", $titles_output),
+      'paths'         => implode("\n", $paths_output),
       'home'          => $breadcrumb->home,
       'translatable'  => $breadcrumb->translatable,
       'arguments'     => $breadcrumb->arguments,

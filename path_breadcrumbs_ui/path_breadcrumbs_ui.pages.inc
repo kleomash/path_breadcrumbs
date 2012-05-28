@@ -110,3 +110,39 @@ function path_breadcrumbs_ui_edit_form_ajax_links($breadcrumb, $step) {
   $commands[] = ajax_command_replace('#path-breadcrumbs-ui-edit-form-wrapper', render($form));
   return array('#type' => 'ajax', '#commands' => $commands);
 }
+
+/**
+ * Disables path breadcrumb.
+ */
+function path_breadcrumbs_ui_disable_breadcrumbs_page($breadcrumb) {
+
+  // Update breadcrumb in database.
+  db_update('path_breadcrumbs')
+    ->fields(array(
+      'disabled' => 1,
+    ))
+    ->condition('path_id', $breadcrumb->path_id)
+    ->execute();
+
+  drupal_set_message(t('Breadcrumb %name was disabled', array('%name' => $breadcrumb->name)));
+
+  drupal_goto('admin/structure/path-breadcrumbs');
+}
+
+/**
+ * Enables path breadcrumb.
+ */
+function path_breadcrumbs_ui_enable_breadcrumbs_page($breadcrumb) {
+
+  // Update breadcrumb in database.
+  db_update('path_breadcrumbs')
+    ->fields(array(
+      'disabled' => 0,
+    ))
+    ->condition('path_id', $breadcrumb->path_id)
+    ->execute();
+
+  drupal_set_message(t('Breadcrumb %name was enabled', array('%name' => $breadcrumb->name)));
+
+  drupal_goto('admin/structure/path-breadcrumbs');
+}

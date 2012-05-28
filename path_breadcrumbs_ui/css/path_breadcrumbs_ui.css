@@ -1,3 +1,6 @@
+/**
+ * Path breadcrumbs ui edit form styles
+ */
 #path-breadcrumbs-ui-wrapper {
   padding: 0 0 0 150px;
 }
@@ -60,4 +63,11 @@
   height: 100%;
   padding: 1em;
   width: 100%;
+}
+
+/**
+ * Path breadcrumbs ui list page styles
+ */
+#path-breadcrumbs-ui-breadcrumbs-list .disabled {
+  color: #AAAAAA;
 }
