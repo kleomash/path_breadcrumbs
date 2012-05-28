@@ -38,6 +38,7 @@ function path_breadcrumbs_load_variant($path) {
   $variants = db_select('path_breadcrumbs', 'p')
     ->fields('p',  array('path_id', 'path'))
     ->condition('p.path', $sql_replacements, 'LIKE')
+    ->orderBy('p.weight')
     ->execute();
 
   foreach ($variants as $variant) {

@@ -762,7 +762,6 @@ function path_breadcrumbs_ui_edit_form($form, $form_state, $breadcrumb, $step) {
   }
 
   // Set two submit buttons for every form.
-
   $form['actions'] = array(
     '#type' => 'action',
     '#weight' => 100,
@@ -802,6 +801,7 @@ function path_breadcrumbs_ui_edit_form_ajax_callback($form, $form_state) {
       return array('#type' => 'ajax', '#commands' => $commands);
     }
   }
+
   return $form;
 }
 
