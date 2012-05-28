@@ -126,6 +126,12 @@ function theme_path_breadcrumbs_ui_breadcrumbs_list($vars) {
     }
   }
 
+  if (empty($rows)) {
+    $rows = array(array(
+      'data' => array(array('data' => t('There are no created path breadcrumbs yet. '), 'colspan' => 5))
+    ));
+  }
+
   $header = array(t('Title'), t('Name'), t('Path'), t('Actions'), t('Weight'));
   $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'path-breadcrumbs-ui-table-list')));
   drupal_add_tabledrag('path-breadcrumbs-ui-table-list', 'order', 'sibling', 'path-breadcrumbs-ui-table-weight');
