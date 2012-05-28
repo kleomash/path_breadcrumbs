@@ -7,7 +7,8 @@ function path_breadcrumbs_ui_menu() {
 
   $items['admin/structure/path-breadcrumbs'] = array(
     'title' => 'Path breadcrumbs',
-    'page callback' => 'path_breadcrumbs_ui_admin_page',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('path_breadcrumbs_ui_breadcrumbs_list'),
     'access arguments' => array('administer path breadcrumbs'),
     'file' => 'path_breadcrumbs_ui.admin.inc',
   );
@@ -88,6 +89,10 @@ function path_breadcrumbs_ui_theme(&$items, $task) {
   return array(
     'path_breadcrumbs_ui_form_step_arguments_selection_table' => array(
       'render element' => 'form',
+    ),
+    'path_breadcrumbs_ui_breadcrumbs_list' => array(
+      'render element' => 'form',
+      'file' => 'path_breadcrumbs_ui.admin.inc',
     ),
   );
 }

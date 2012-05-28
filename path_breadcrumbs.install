@@ -129,7 +129,7 @@ function path_breadcrumbs_update_7200(&$sandbox) {
       ->execute();
   }
 
-  // Enable module that is new for 7.x-2.x.
+  // Enable module that is new for 7.x-2.x but was included in 7.x-1.x core.
   module_enable(array('path_breadcrumbs_ui'));
 
   return t('Path breadcrumbs successfully converted data from old table to a new one.');
