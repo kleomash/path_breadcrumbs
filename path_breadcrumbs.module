@@ -16,7 +16,13 @@ function path_breadcrumbs_page_alter(&$page) {
 }
 
 /**
- * Load path breadcrumb variants by path.
+ *
+ * Load path breadcrumb variant for page url.
+ *
+ * @param  $path
+ *   Current page url.
+ * @return object
+ *   Path breadcrumb that matches page url.
  */
 function path_breadcrumbs_load_variant($path) {
 
@@ -35,6 +41,7 @@ function path_breadcrumbs_load_variant($path) {
     $sql_replacements = $path;
   }
 
+  // Select all variants matching current path.
   $variants = db_select('path_breadcrumbs', 'p')
     ->fields('p',  array('path_id', 'path'))
     ->condition('p.path', $sql_replacements, 'LIKE')
@@ -42,6 +49,8 @@ function path_breadcrumbs_load_variant($path) {
     ->orderBy('p.weight')
     ->execute();
 
+  // Check if current path maches variant.
+  // When first variant is found - return it.
   foreach ($variants as $variant) {
     $matched_path = array();
     $arguments    = explode('/', $variant->path);
@@ -63,16 +72,23 @@ function path_breadcrumbs_load_variant($path) {
 }
 
 /**
- * Builds array with breadcrumbs.
+ *
+ * Build breadcrumbs navigation from loaded path breadcrumb variant.
+ *
+ * @param  $path_breadcrumb
+ *   Object with path breadcrumb variant loaded from database.
+ * @return array
+ *   Array with breadcrumbs navigation.
  */
 function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
   $breadcrumb = array();
 
-  // Add HOME link.
+  // Prepend HOME link to breadcrumbs navigation.
   if ($path_breadcrumb->home == TRUE) {
     $breadcrumb[] = l(t('Home'), '<front>');
   }
 
+  // Convert arguments from url to contexts.
   if (!empty($path_breadcrumb->arguments)) {
 
     // Include ctools library for contexts.
@@ -92,11 +108,12 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
       }
     }
 
-    // Replace placeholders by current values.
+    // Replace placeholders by current context values.
     $path_breadcrumb->titles = ctools_context_keyword_substitute($path_breadcrumb->titles, array(), $contexts);
     $path_breadcrumb->paths  = ctools_context_keyword_substitute($path_breadcrumb->paths, array(), $contexts);
   }
 
+  // Explode titles and paths into array.
   $titles = explode("\n", $path_breadcrumb->titles);
   $paths  = explode("\n", $path_breadcrumb->paths);
 
@@ -120,7 +137,12 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
 }
 
 /**
- * Save path breadcrumbs.
+ * Save path breadcrumb.
+ *
+ * @param  $breadcrumb
+ *   Object with path breadcrumb data.
+ * @return int
+ *   ID of inserted/updated path breadcrumb.
  */
 function path_breadcrumbs_save($breadcrumb) {
 
@@ -133,7 +155,7 @@ function path_breadcrumbs_save($breadcrumb) {
     }
   }
 
-  // Remove spaces and empty lines in breadcrumb titles.
+  // Remove spaces and empty lines in breadcrumb paths.
   $paths_output = array();
   $paths = explode("\n", $breadcrumb->paths);
   foreach ($paths as $path) {
@@ -174,7 +196,12 @@ function path_breadcrumbs_save($breadcrumb) {
 }
 
 /**
- * Delete path breadcrumbs.
+ * Delete path breadcrumb.
+ *
+ * @param  $path_breadcrumb
+ *   Path breadcrumb ID or Object to delete.
+ * @return bool
+ *   Result of path breadcrumb deletion.
  */
 function path_breadcrumbs_delete($path_breadcrumb) {
 
@@ -197,12 +224,20 @@ function path_breadcrumbs_delete($path_breadcrumb) {
 }
 
 /**
- * Load path breadcrumbs.
+ * Load path breadcrumbs by ID.
+ *
+ * @param  $path_id
+ *   ID of path breadcrumb that should be loaded
+ * @return object
+ *   Loaded path breadcrumb
  */
 function path_breadcrumbs_load($path_id) {
   static $paths;
 
+  // See if current breadcrumb already was loaded.
   if (!isset($paths[$path_id])) {
+
+    // Load breadcrumb from database.
     $breadcrumb = db_select('path_breadcrumbs', 'p')
       ->fields('p')
       ->condition('p.path_id', $path_id)
@@ -210,6 +245,7 @@ function path_breadcrumbs_load($path_id) {
       ->fetchObject();
 
     if ($breadcrumb) {
+      // Merge breadcrumb data with parent for more flattening structure.
       $breadcrumb->data = unserialize($breadcrumb->data);
       $breadcrumb = (object) array_merge((array) $breadcrumb, $breadcrumb->data);
       unset($breadcrumb->data);
@@ -221,12 +257,20 @@ function path_breadcrumbs_load($path_id) {
 }
 
 /**
- * Load path breadcrumb by machine name.
+ * Load path breadcrumb by name.
+ *
+ * @param  $name
+ *   Path breadcrumb's name.
+ * @return object
+ *   Object with path breadcrumb.
  */
 function path_breadcrumbs_load_by_name($name) {
   static $paths;
 
+  // See if current breadcrumb already was loaded.
   if (!isset($paths[$name])) {
+
+    // Load breadcrumb from database.
     $breadcrumb = db_select('path_breadcrumbs', 'p')
       ->fields('p')
       ->condition('p.machine_name', $name)
@@ -234,6 +278,7 @@ function path_breadcrumbs_load_by_name($name) {
       ->fetchObject();
 
     if ($breadcrumb) {
+      // Merge breadcrumb data with parent for more flattening structure.
       $breadcrumb->data = unserialize($breadcrumb->data);
       $breadcrumb = (object) array_merge((array) $breadcrumb, $breadcrumb->data);
       unset($breadcrumb->data);
@@ -245,7 +290,14 @@ function path_breadcrumbs_load_by_name($name) {
 }
 
 /**
- * Return ctools object cache data.
+ * Get path breadcrumb data from cache.
+ *
+ * @param  $name
+ *   Machine name of path breadcrumb that should be loaded.
+ * @param bool $skip_cache
+ *   Skip current cache or not.
+ * @return object
+ *   Return cached object.
  */
 function path_breadcrumbs_object_cache_get($name, $skip_cache = FALSE) {
   ctools_include('object-cache');
@@ -253,7 +305,13 @@ function path_breadcrumbs_object_cache_get($name, $skip_cache = FALSE) {
 }
 
 /**
- * Save data to ctools object cache storage.
+ * Cache path breadcrumb data.
+ *
+ * @param  $name
+ *   Machine name of path breadcrumb.
+ * @param  $data
+ *   Data to store.
+ * @return void
  */
 function path_breadcrumbs_object_cache_set($name, $data) {
   ctools_include('object-cache');
