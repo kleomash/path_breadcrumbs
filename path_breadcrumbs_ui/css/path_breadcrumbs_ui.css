@@ -76,6 +76,6 @@
 /**
  * Path breadcrumbs ui list page styles
  */
-#path-breadcrumbs-ui-breadcrumbs-list .disabled {
+#path-breadcrumbs-ui-breadcrumbs-list .disabled td {
   color: #AAAAAA;
 }
