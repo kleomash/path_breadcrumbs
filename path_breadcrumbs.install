@@ -101,6 +101,7 @@ function path_breadcrumbs_update_7200(&$sandbox) {
       'home'          => $variant->home,
       'translatable'  => 1,
       'arguments'     => $arguments,
+      'access'        => array(),
     ));
 
     $new_variants[] = $variant;
