@@ -74,8 +74,15 @@ function path_breadcrumbs_ui_edit_page($path_breadcrumb) {
 
   $links[] = array(
     '#type' => 'link',
-    '#title' => t('Breadcrumbs'),
+    '#title' => t('Selection rules'),
     '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/3',
+    '#attributes' => array('class' => array('use-ajax')),
+  );
+
+  $links[] = array(
+    '#type' => 'link',
+    '#title' => t('Breadcrumbs'),
+    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/4',
     '#attributes' => array('class' => array('use-ajax')),
   );
 
@@ -119,8 +126,8 @@ function path_breadcrumbs_ui_disable_breadcrumbs_page($breadcrumb) {
   // Update breadcrumb in database.
   db_update('path_breadcrumbs')
     ->fields(array(
-      'disabled' => 1,
-    ))
+    'disabled' => 1,
+  ))
     ->condition('path_id', $breadcrumb->path_id)
     ->execute();
 
@@ -137,8 +144,8 @@ function path_breadcrumbs_ui_enable_breadcrumbs_page($breadcrumb) {
   // Update breadcrumb in database.
   db_update('path_breadcrumbs')
     ->fields(array(
-      'disabled' => 0,
-    ))
+    'disabled' => 0,
+  ))
     ->condition('path_id', $breadcrumb->path_id)
     ->execute();
 
