@@ -116,7 +116,7 @@ function path_breadcrumbs_ui_permission() {
  * Implementats hook_theme().
  */
 function path_breadcrumbs_ui_theme(&$items, $task) {
-  return array( 
+  return array(
     'path_breadcrumbs_ui_form_step_arguments_selection_table' => array(
       'render element' => 'form',
     ),
@@ -143,6 +143,7 @@ function path_breadcrumbs_ui_add_form($form, &$form_state) {
   $navigation = array();
   $navigation[] = t('Basic settings');
   $navigation[] = t('Choose arguments');
+  $navigation[] = t('Selection rules');
   $navigation[] = t('Breadcrumbs settings');
 
   // Wrap current navigation item in <span>.
@@ -150,7 +151,7 @@ function path_breadcrumbs_ui_add_form($form, &$form_state) {
 
   $form['navigation'] = array(
     '#type' => 'item',
-    '#markup' => implode(" -> ", $navigation),
+    '#markup' => implode(' -> ', $navigation),
   );
 
   $form_build_function = '';
@@ -164,8 +165,7 @@ function path_breadcrumbs_ui_add_form($form, &$form_state) {
       break;
 
     case 3:
-      //$form_build_function = 'selection_rules';
-      $form_build_function = 'breadcrumbs_settings';
+      $form_build_function = 'selection_rules';
       break;
 
     case 4:
@@ -437,6 +437,63 @@ function _path_breadcrumbs_ui_form_step_arguments_selection(&$form, &$form_state
   }
 
   _path_breadcrumbs_ui_form_attach_buttons($form, array('next', 'prev'), 'path_breadcrumbs_ui_add_form');
+}
+
+/**
+ * Form with selection rules.
+ */
+function _path_breadcrumbs_ui_form_step_selection_rules(&$form, &$form_state) {
+
+  if (empty($form_state['storage']['machine_name'])) {
+    return;
+  }
+
+  $data = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
+  if (!empty($data->access)) {
+    $form_state['access'] = $data->access;
+  }
+
+  $contexts = path_breadcrumbs_get_contexts_from_arguments($data->arguments, TRUE);
+
+  ctools_include('modal');
+  ctools_include('ajax');
+  ctools_modal_add_plugin_js(ctools_get_access_plugins());
+  ctools_include('context-access-admin');
+  $form_state['module'] = 'path_breadcrumbs';
+  $form_state['callback argument'] = $form_state['storage']['machine_name'];
+  $form_state['no buttons'] = TRUE;
+  $form_state['contexts'] = $contexts;
+
+  $form['markup'] = array(
+    '#markup' => '<div class="description">' .
+      t('If there is more than one variant on a page, when the page is visited each variant is given an opportunity to be displayed. Starting from the first variant and working to the last, each one tests to see if its selection rules will pass. The first variant that meets its criteria (as specified below) will be used.') .
+      '</div>',
+  );
+
+  $form = ctools_access_admin_form($form, $form_state);
+  _path_breadcrumbs_ui_form_attach_buttons($form, array('next', 'prev'), 'path_breadcrumbs_ui_add_form');
+}
+
+/**
+ * Callback for access control ajax form on behalf of context task handler.
+ *
+ * Returns the cached access config and contexts used.
+ */
+function path_breadcrumbs_ctools_access_get($path_name) {
+  $data = path_breadcrumbs_object_cache_get($path_name);
+  $contexts = path_breadcrumbs_get_contexts_from_arguments($data->arguments, TRUE);
+  return array($data->access, $contexts);
+}
+
+/**
+ * Callback for access control ajax form on behalf of context task handler.
+ *
+ * Writes the changed access to the cache.
+ */
+function path_breadcrumbs_ctools_access_set($path_name, $access) {
+  $data = path_breadcrumbs_object_cache_get($path_name);
+  $data->access = $access;
+  path_breadcrumbs_object_cache_set($path_name, $data);
 }
 
 /**

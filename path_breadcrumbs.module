@@ -6,11 +6,10 @@
 function path_breadcrumbs_page_alter(&$page) {
 
   // See if current page has path breadcrumbs.
-  $variant = path_breadcrumbs_load_variant(request_path());
+  $breadcrumbs = path_breadcrumbs_load_variant(request_path());
 
-  // If object with breadcrumbs was loaded - build breadcrumbs.
-  if ($variant) {
-    $breadcrumbs = _path_breadcrumbs_build_breadcrumbs($variant);
+  // Set breadcrumbs for current page if it exists.
+  if ($breadcrumbs) {
     drupal_set_breadcrumb($breadcrumbs);
   }
 }
@@ -64,10 +63,21 @@ function path_breadcrumbs_load_variant($path) {
     }
     $matched_path = implode('/', $matched_path);
     if (drupal_match_path($path, $matched_path)) {
-      return path_breadcrumbs_load($variant->path_id);
+
+      // Check if breadcrumb is accessible.
+      $breadcrumb = path_breadcrumbs_load($variant->path_id);
+      if (empty($breadcrumb->access)) {
+        return $breadcrumb;
+      }
+      else {
+        $contexts = path_breadcrumbs_get_contexts_from_arguments($breadcrumb->arguments);
+        $access = ctools_access($breadcrumb->access, $contexts);
+        if ($access) {
+          return _path_breadcrumbs_build_breadcrumbs($breadcrumb, $contexts);
+        }
+      }
     }
   }
-
   return FALSE;
 }
 
@@ -77,10 +87,12 @@ function path_breadcrumbs_load_variant($path) {
  *
  * @param  $path_breadcrumb
  *   Object with path breadcrumb variant loaded from database.
+ * @param $contexts
+ *   Ctools contexts from current URL.
  * @return array
  *   Array with breadcrumbs navigation.
  */
-function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
+function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts) {
   $breadcrumb = array();
 
   // Prepend HOME link to breadcrumbs navigation.
@@ -90,24 +102,6 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
 
   // Convert arguments from url to contexts.
   if (!empty($path_breadcrumb->arguments)) {
-
-    // Include ctools library for contexts.
-    ctools_include('context');
-    $contexts = array();
-
-    // Get contexts from arguments.
-    foreach ($path_breadcrumb->arguments as $keyword => $arg) {
-      if (!empty($arg['argument'])) {
-        $argument = ctools_get_argument($arg['argument']);
-        if (isset($arg['settings'])) {
-          $argument = array_merge($argument, $arg['settings']);
-        }
-        $context = call_user_func($argument['context'], arg($arg['position']), $argument);
-        $context->keyword = $keyword;
-        $contexts[] = $context;
-      }
-    }
-
     // Replace placeholders by current context values.
     $path_breadcrumb->titles = ctools_context_keyword_substitute($path_breadcrumb->titles, array(), $contexts);
     $path_breadcrumb->paths  = ctools_context_keyword_substitute($path_breadcrumb->paths, array(), $contexts);
@@ -146,6 +140,14 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb) {
  */
 function path_breadcrumbs_save($breadcrumb) {
 
+  // Build array with full access data.
+  if (!empty($breadcrumb->access) && !empty($breadcrumb->logic)) {
+    $breadcrumb->access['logic'] = $breadcrumb->logic;
+  }
+  else {
+    $breadcrumb->access = array();
+  }
+
   // Remove spaces and empty lines in breadcrumb titles.
   $titles_output = array();
   $titles = explode("\n", $breadcrumb->titles);
@@ -175,6 +177,7 @@ function path_breadcrumbs_save($breadcrumb) {
       'home'          => $breadcrumb->home,
       'translatable'  => $breadcrumb->translatable,
       'arguments'     => $breadcrumb->arguments,
+      'access'        => $breadcrumb->access,
     )),
   );
 
@@ -192,6 +195,10 @@ function path_breadcrumbs_save($breadcrumb) {
       ->execute();
   }
 
+  // Remove data from ctools object cache table.
+  ctools_object_cache_clear('path_breadcrumbs', $breadcrumb->machine_name);
+
+  // Return path breadcrumb ID.
   return isset($path_id) ? $path_id : $breadcrumb->path_id;
 }
 
@@ -287,6 +294,41 @@ function path_breadcrumbs_load_by_name($name) {
   }
 
   return $paths[$name];
+}
+
+/**
+ * Load ctools contexts from path arguments.
+ *
+ * @param $arguments
+ *   Path arguments.
+ * @return array
+ */
+function path_breadcrumbs_get_contexts_from_arguments($arguments, $empty = FALSE) {
+  $contexts = array();
+  if (!empty($arguments)) {
+
+    // Include ctools library for contexts.
+    ctools_include('context');
+
+    // Get contexts from arguments.
+    foreach ($arguments as $keyword => $arg) {
+      if (!empty($arg['argument'])) {
+        $argument = ctools_get_argument($arg['argument']);
+        if (isset($arg['settings'])) {
+          $argument = array_merge($argument, $arg['settings']);
+        }
+
+        // See what we should return: empty contexts or from path arguments.
+        $arg = $empty ? NULL : arg($arg['position']);
+
+        // Build context.
+        $context = call_user_func($argument['context'], $arg, $argument, $empty);
+        $context->keyword = $keyword;
+        $contexts[$keyword] = $context;
+      }
+    }
+  }
+  return $contexts;
 }
 
 /**
