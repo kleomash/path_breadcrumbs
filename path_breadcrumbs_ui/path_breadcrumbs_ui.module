@@ -130,7 +130,7 @@ function path_breadcrumbs_ui_theme(&$items, $task) {
 /**
  * Multistep form that creates new path breacrumbs.
  */
-function path_breadcrumbs_ui_add_form($form, &$form_state) {
+function path_breadcrumbs_ui_add_form($form, &$form_state, $show_navigation = TRUE) {
 
   $form['#prefix'] = '<div id="path-breadcrumbs-ui-add-form-wrapper">';
   $form['#suffix'] = '</div>';
@@ -140,19 +140,21 @@ function path_breadcrumbs_ui_add_form($form, &$form_state) {
   }
   $step = $form_state['storage']['step'];
 
-  $navigation = array();
-  $navigation[] = t('Basic settings');
-  $navigation[] = t('Choose arguments');
-  $navigation[] = t('Selection rules');
-  $navigation[] = t('Breadcrumbs settings');
+  if ($show_navigation) {
+    $navigation = array();
+    $navigation[] = t('Basic settings');
+    $navigation[] = t('Choose arguments');
+    $navigation[] = t('Selection rules');
+    $navigation[] = t('Breadcrumbs settings');
 
-  // Wrap current navigation item in <span>.
-  $navigation[$step-1] = '<span class="current-nav-item">' . $navigation[$step-1] . '</span>';
+    // Wrap current navigation item in <span>.
+    $navigation[$step-1] = '<span class="current-nav-item">' . $navigation[$step-1] . '</span>';
 
-  $form['navigation'] = array(
-    '#type' => 'item',
-    '#markup' => implode(' -> ', $navigation),
-  );
+    $form['navigation'] = array(
+      '#type' => 'item',
+      '#markup' => implode(' -> ', $navigation),
+    );
+  }
 
   $form_build_function = '';
   switch ($step) {
@@ -856,7 +858,7 @@ function path_breadcrumbs_ui_edit_form($form, $form_state, $breadcrumb, $step) {
   $form_state['storage']['machine_name'] = $breadcrumb->machine_name;
   $form_state['storage']['step'] = $step;
 
-  $form = path_breadcrumbs_ui_add_form(array(), $form_state);
+  $form = path_breadcrumbs_ui_add_form(array(), $form_state, FALSE);
 
   $form['#prefix'] = '<div id="path-breadcrumbs-ui-edit-form-wrapper">';
   $form['#suffix'] = '</div>';

@@ -51,11 +51,14 @@
   font-size: 1.1em;
 }
 
-#path-breadcrumbs-ui-menu .item-list ul li a:hover,
-#path-breadcrumbs-ui-menu .item-list ul li a:active,
-#path-breadcrumbs-ui-menu .item-list ul li a:focus {
+#path-breadcrumbs-ui-menu .item-list ul li a:hover {
   text-decoration: none;
   background: #FFFFFF;
+}
+
+#path-breadcrumbs-ui-menu .item-list ul a.active {
+  background: #ffe4c4;
+  font-weight: bold;
 }
 
 #path-breadcrumbs-ui-menu .item-list ul li .ajax-progress {

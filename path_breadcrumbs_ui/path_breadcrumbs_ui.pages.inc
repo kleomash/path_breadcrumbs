@@ -62,7 +62,7 @@ function path_breadcrumbs_ui_edit_page($path_breadcrumb) {
     '#type' => 'link',
     '#title' => t('Basic'),
     '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/1',
-    '#attributes' => array('class' => array('use-ajax')),
+    '#attributes' => array('class' => array('use-ajax', 'active')),
   );
 
   $links[] = array(
@@ -115,6 +115,8 @@ function path_breadcrumbs_ui_edit_form_ajax_links($breadcrumb, $step) {
 
   $commands = array();
   $commands[] = ajax_command_replace('#path-breadcrumbs-ui-edit-form-wrapper', render($form));
+  $commands[] = ajax_command_invoke('#path-breadcrumbs-ui-menu li a', 'removeClass', array('active'));
+  $commands[] = ajax_command_invoke('#path-breadcrumbs-ui-menu li a:eq(' . --$step . ')', 'addClass', array('active'));
   return array('#type' => 'ajax', '#commands' => $commands);
 }
 
