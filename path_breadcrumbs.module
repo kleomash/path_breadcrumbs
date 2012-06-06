@@ -324,6 +324,7 @@ function path_breadcrumbs_get_contexts_from_arguments($arguments, $empty = FALSE
         // Build context.
         $context = call_user_func($argument['context'], $arg, $argument, $empty);
         $context->keyword = $keyword;
+        $context->identifier = $argument['identifier'];
         $contexts[$keyword] = $context;
       }
     }

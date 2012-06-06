@@ -746,17 +746,20 @@ function path_breadcrumbs_ui_argument_context_form($form, $form_state, $path_nam
 
     case 2:
 
+      $plugins = ctools_get_arguments();
+      $argument = $plugins[$form_state['values']['argument']];
+
+      $form['settings']['identifier'] = array(
+        '#title' => t('Context identifier'),
+        '#type' => 'textfield',
+        '#default_value' => $argument['title'],
+      );
+
       $plugin = ctools_get_argument($form_state['storage']['argument']);
       if ($function = (string) ctools_plugin_get_function($plugin, 'settings form')) {
         $settings_form = $settings_form_state = array();
         $function($settings_form, $settings_form_state);
-        $form += $settings_form;
-      }
-      else {
-        $form['message'] = array(
-          '#type' => 'item',
-          '#markup' => t("Current argument doesn't contains settings form"),
-        );
+        $form['settings'] += $settings_form['settings'];
       }
 
       _path_breadcrumbs_ui_form_attach_buttons($form, array('prev', 'finish'), 'path_breadcrumbs_ui_argument_context_form');
