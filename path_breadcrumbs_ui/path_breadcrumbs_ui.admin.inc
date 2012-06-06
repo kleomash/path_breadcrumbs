@@ -95,7 +95,7 @@ function path_breadcrumbs_ui_breadcrumbs_list_submit($form, &$form_state) {
     }
   }
 
-  drupal_set_message(t('Breadcrumbs variants weight was updated.'));
+  drupal_set_message(t('Path breadcrumbs was updated.'));
 }
 
 /**

@@ -64,18 +64,18 @@ function path_breadcrumbs_load_variant($path) {
     $matched_path = implode('/', $matched_path);
     if (drupal_match_path($path, $matched_path)) {
 
-      // Check if breadcrumb is accessible.
+      // Load breadcrumbs and it's contexts from current path.
       $breadcrumb = path_breadcrumbs_load($variant->path_id);
-      if (empty($breadcrumb->access)) {
-        return $breadcrumb;
-      }
-      else {
-        $contexts = path_breadcrumbs_get_contexts_from_arguments($breadcrumb->arguments);
+      $contexts = path_breadcrumbs_get_contexts_from_arguments($breadcrumb->arguments);
+
+      // Check if breadcrumb is accessible.
+      if (!empty($breadcrumb->access)) {
         $access = ctools_access($breadcrumb->access, $contexts);
-        if ($access) {
-          return _path_breadcrumbs_build_breadcrumbs($breadcrumb, $contexts);
+        if (!$access) {
+          return FALSE;
         }
       }
+      return _path_breadcrumbs_build_breadcrumbs($breadcrumb, $contexts);
     }
   }
   return FALSE;
@@ -92,7 +92,7 @@ function path_breadcrumbs_load_variant($path) {
  * @return array
  *   Array with breadcrumbs navigation.
  */
-function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts) {
+function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array()) {
   $breadcrumb = array();
 
   // Prepend HOME link to breadcrumbs navigation.
@@ -101,7 +101,7 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts) {
   }
 
   // Convert arguments from url to contexts.
-  if (!empty($path_breadcrumb->arguments)) {
+  if (!empty($contexts)) {
     // Replace placeholders by current context values.
     $path_breadcrumb->titles = ctools_context_keyword_substitute($path_breadcrumb->titles, array(), $contexts);
     $path_breadcrumb->paths  = ctools_context_keyword_substitute($path_breadcrumb->paths, array(), $contexts);
