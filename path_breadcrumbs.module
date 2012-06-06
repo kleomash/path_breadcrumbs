@@ -148,6 +148,20 @@ function path_breadcrumbs_save($breadcrumb) {
     $breadcrumb->access = array();
   }
 
+  // Update data carefully for breadcrumbs table.
+  if (!empty($breadcrumb->breadcrumbs_table)) {
+    $titles = array();
+    $paths = array();
+    foreach ($breadcrumb->breadcrumbs_table as $row) {
+      if ($row['left_value'] && $row['right_value']) {
+        $titles[] = $row['left_value'];
+        $paths[] = $row['right_value'];
+      }
+    }
+    $breadcrumb->titles = implode("\n", $titles);
+    $breadcrumb->paths = implode("\n", $paths);
+  }
+
   // Remove spaces and empty lines in breadcrumb titles.
   $titles_output = array();
   $titles = explode("\n", $breadcrumb->titles);

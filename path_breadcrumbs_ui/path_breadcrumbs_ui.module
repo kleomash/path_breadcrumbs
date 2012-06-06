@@ -530,7 +530,8 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
   $form['home'] = array(
     '#type' => 'checkbox',
     '#title' => t('Prepend Home Link to the Breadcrumb'),
-    '#description' => t('First breadcrumb will be a link to the front page.')
+    '#description' => t('First breadcrumb will be a link to the front page.'),
+    '#default_value' => 1,
   );
 
   $form['breadcrumbs_table'] = array(
