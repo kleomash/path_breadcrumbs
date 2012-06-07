@@ -470,6 +470,9 @@ function _path_breadcrumbs_ui_form_step_selection_rules(&$form, &$form_state) {
   if (!empty($data->access)) {
     $form_state['access'] = $data->access;
   }
+  else {
+    $form_state['access'] = array();
+  }
 
   $contexts = path_breadcrumbs_get_contexts_from_arguments($data->arguments, TRUE);
 
@@ -500,7 +503,13 @@ function _path_breadcrumbs_ui_form_step_selection_rules(&$form, &$form_state) {
 function path_breadcrumbs_ctools_access_get($path_name) {
   $data = path_breadcrumbs_object_cache_get($path_name);
   $contexts = path_breadcrumbs_get_contexts_from_arguments($data->arguments, TRUE);
-  return array($data->access, $contexts);
+
+  $access = array();
+  if (!empty($data->access)) {
+    $access = $data->access;
+  }
+
+  return array($access, $contexts);
 }
 
 /**
@@ -545,14 +554,20 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
   );
 
   if (empty($form_state['storage']['rows_count'])) {
-    $form_state['storage']['rows_count'] = 0;
+    $form_state['storage']['rows_count'] = 1;
   }
 
   $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
-  $titles = explode("\n", $breadcrumb->titles);
-  $paths  = explode("\n", $breadcrumb->paths);
 
-  if (!empty($titles)) {
+  if (!empty($breadcrumb->titles)) {
+    $titles = explode("\n", $breadcrumb->titles);
+  }
+
+  if (!empty($breadcrumb->paths)) {
+    $paths  = explode("\n", $breadcrumb->paths);
+  }
+
+  if (isset($titles)) {
     $count = count($titles);
     if ($count > $form_state['storage']['rows_count']) {
       $form_state['storage']['rows_count'] = $count;
@@ -600,6 +615,12 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
     ctools_include('context');
     foreach ($breadcrumb->arguments as $keyword => $arg) {
       $argument = ctools_get_argument($arg['argument']);
+
+      if (isset($arg['settings'])) {
+        $argument += $arg['settings'];
+        $argument['id'] = 1;
+      }
+
       $context = ctools_context_get_context_from_argument($argument, $keyword, TRUE);
       $converters = ctools_context_get_converters('%' . check_plain($keyword) . ':', $context);
       foreach ($converters as $substitution => $title) {
@@ -866,7 +887,7 @@ function path_breadcrumbs_ui_argument_context_form($form, $form_state, $path_nam
       }
       else {
         $breadcrumb = path_breadcrumbs_object_cache_get($path_name);
-        if (isset($breadcrumb->arguments[$keyword])) {
+        if (isset($breadcrumb->arguments[$keyword]['argument'])) {
           $form['argument']['#default_value'] = $breadcrumb->arguments[$keyword]['argument'];
         }
       }
@@ -928,21 +949,24 @@ function path_breadcrumbs_ui_argument_context_form_submit($form, &$form_state) {
 
   $form_state['storage'] = array_merge($form_state['storage'], $values);
 
+  $keyword = $form_state['storage']['keyword'];
+
   // Merge data into cache storage.
   $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['path_name']);
   $breadcrumb = array_merge((array) $breadcrumb, $values);
 
-  // Save settings to argument's keyword.
-  $breadcrumb->arguments[$values['keyword']]['settings'] = $breadcrumb['settings'];
-  unset($breadcrumb['settings']);
+  if (!empty($breadcrumb['settings'])) {
+    // Save settings to argument's keyword.
+    $breadcrumb['arguments'][$keyword]['settings'] = $breadcrumb['settings'];
+    unset($breadcrumb['settings']);
+  }
 
   // Switch current step.
   if (isset($actions['next']) && $values['op'] == $actions['next']) {
     $form_state['storage']['step']++;
 
     // Unset selection rules for argument if it was changed.
-    $keyword = $form_state['storage']['keyword'];
-    if ($breadcrumb['arguments'][$keyword]['argument'] != $values['argument']) {
+    if (!empty($breadcrumb['arguments'][$keyword]['argument']) && $breadcrumb['arguments'][$keyword]['argument'] != $values['argument']) {
       unset($breadcrumb['arguments'][$keyword]['settings']);
     }
   }
@@ -974,7 +998,7 @@ function path_breadcrumbs_ui_argument_context_form_ajax_callback($form, $form_st
       $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['path_name']);
 
       // Unset selection rules for argument if it was changed.
-      if ($breadcrumb->arguments[$keyword]['argument'] != $form_state['storage']['argument']) {
+      if (!empty($breadcrumb->arguments[$keyword]['argument']) && $breadcrumb->arguments[$keyword]['argument'] != $form_state['storage']['argument']) {
         if (!empty($breadcrumb->access['plugins'])) {
           foreach ($breadcrumb->access['plugins'] as $key => $access) {
             if ($access['context'] == $keyword) {
