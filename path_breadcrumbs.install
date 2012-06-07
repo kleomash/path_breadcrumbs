@@ -6,6 +6,14 @@
  */
 
 /**
+ * Implements hook_uninstall().
+ */
+function path_breadcrumbs_uninstall() {
+  variable_del('path_breadcrumbs_home_link_enabled');
+  variable_del('path_breadcrumbs_home_link_title');
+}
+
+/**
  * Implements hook_schema().
  */
 function path_breadcrumbs_schema() {
