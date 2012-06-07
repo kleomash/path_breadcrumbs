@@ -7,20 +7,27 @@ function path_breadcrumbs_ui_menu() {
 
   $items['admin/structure/path-breadcrumbs'] = array(
     'title' => 'Path breadcrumbs',
+    'access arguments' => array('administer path breadcrumbs'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('path_breadcrumbs_ui_breadcrumbs_list'),
-    'access arguments' => array('administer path breadcrumbs'),
     'file' => 'path_breadcrumbs_ui.admin.inc',
   );
 
   $items['admin/structure/path-breadcrumbs/list'] = array(
     'title' => 'Path breadcrumbs list',
+    'file' => 'path_breadcrumbs_ui.admin.inc',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+  $items['admin/structure/path-breadcrumbs/settings'] = array(
+    'title' => 'Path breadcrumbs settings',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('path_breadcrumbs_ui_breadcrumbs_list'),
+    'page arguments' => array('path_breadcrumbs_ui_settings'),
     'access arguments' => array('administer path breadcrumbs'),
     'file' => 'path_breadcrumbs_ui.admin.inc',
-    'menu' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 0,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
   );
 
   $items['admin/structure/path-breadcrumbs/create'] = array(
@@ -29,7 +36,6 @@ function path_breadcrumbs_ui_menu() {
     'page arguments' => array('path_breadcrumbs_ui_add_form'),
     'access arguments' => array('administer path breadcrumbs'),
     'type' => MENU_LOCAL_ACTION,
-    'weight' => 1,
   );
 
   $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs'] = array(
@@ -531,7 +537,7 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
     '#type' => 'checkbox',
     '#title' => t('Prepend Home Link to the Breadcrumb'),
     '#description' => t('First breadcrumb will be a link to the front page.'),
-    '#default_value' => 1,
+    '#default_value' => variable_get('path_breadcrumbs_home_link_enabled', 1),
   );
 
   $form['breadcrumbs_table'] = array(

@@ -95,17 +95,10 @@ function path_breadcrumbs_load_variant($path) {
 function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array()) {
   $breadcrumb = array();
 
-  // RDFa breadcrumbs support.
-  /*$options = array();
-  $wrap_element = '<span>';
-  if (module_exists('rdf')) {
-    $wrap_element = '<span typeof="v:Breadcrumb">';
-    $options = array('attributes' => array('rel' => 'v:url', 'property' => 'v:title'), 'absolute' => TRUE);
-  }*/
-
   // Prepend HOME link to breadcrumbs navigation.
   if ($path_breadcrumb->home == TRUE) {
-    $breadcrumb[] = l(t('Home'), '<front>');
+    $home = variable_get('path_breadcrumbs_home_link_title', 'Home');
+    $breadcrumb[] = l(t($home), '<front>');
   }
 
   // Convert arguments from url to contexts.

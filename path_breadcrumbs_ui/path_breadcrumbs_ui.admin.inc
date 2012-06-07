@@ -97,3 +97,41 @@ function path_breadcrumbs_ui_breadcrumbs_list_submit($form, &$form_state) {
 
   drupal_set_message(t('Path breadcrumbs was updated.'));
 }
+
+/**
+ * Path breadcrumbs settings form.
+ */
+function path_breadcrumbs_ui_settings($form, $form_state) {
+
+  $form['path_breadcrumbs_home_link'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Home link settings'),
+  );
+
+  $form['path_breadcrumbs_home_link']['path_breadcrumbs_home_link_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Home link should be prepend to breadcrumbs navigation by default'),
+    '#default_value' => variable_get('path_breadcrumbs_home_link_enabled', 1),
+    '#description' => t('This value does not changes current breadcrumbs navigation. It is just set default value for new path breadcrumbs.'),
+  );
+
+  $form['path_breadcrumbs_home_link']['path_breadcrumbs_home_link_title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Home link title'),
+    '#default_value' => variable_get('path_breadcrumbs_home_link_title', 'Home'),
+    '#description' => t('Title of the link that points to the front page.')
+  );
+
+  /*$form['path_breadcrumbs_rdfa'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Microformats')
+  );
+
+  $form['path_breadcrumbs_rdfa']['path_breadcrumbs_rdfa_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable RDFa for breadcrumbs'),
+    '#default_value' => variable_get('path_breadcrumbs_rdfa_enabled', 0),
+  );*/
+
+  return system_settings_form($form);
+}
