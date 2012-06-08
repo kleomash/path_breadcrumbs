@@ -11,6 +11,10 @@
 function path_breadcrumbs_uninstall() {
   variable_del('path_breadcrumbs_home_link_enabled');
   variable_del('path_breadcrumbs_home_link_title');
+  variable_del('path_breadcrumbs_delimited');
+  variable_del('path_breadcrumbs_rdfa_enabled');
+  variable_del('path_breadcrumbs_hide_single_breadcrumb');
+  variable_del('path_breadcrumbs_internal_render');
 }
 
 /**
