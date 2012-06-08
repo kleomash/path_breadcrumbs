@@ -116,6 +116,27 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#description' => t('Symbol that separates breadcrumbs.'),
   );
 
+  $form['path_breadcrumbs_settings']['path_breadcrumbs_rdfa_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable RDFa for breadcrumbs'),
+    '#default_value' => variable_get('path_breadcrumbs_rdfa_enabled', 0),
+  );
+
+  $internal_render = variable_get('path_breadcrumbs_internal_render', 1);
+  if (!$internal_render) {
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_delimited']['#disabled'] = TRUE;
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_rdfa_enabled']['#disabled'] = TRUE;
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_delimited']['#description'] .= '<div style="color:red">' . t('You are not able to choose delimited until internal render is disabled.') . '</div>';
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_rdfa_enabled']['#description'] = '<div style="color:red">' . t('You are not able to use microformats until internal render is disabled.') . '</div>';
+  }
+
+  $form['path_breadcrumbs_settings']['path_breadcrumbs_internal_render'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use module breadcrumbs render function'),
+    '#default_value' => variable_get('path_breadcrumbs_internal_render', 1),
+    '#description' => t("If this value checked module will replace system or theme breadcrumb render function by module's one.<br>Note that if this checkbox is disabled module will not support RDfa anymore. Moreover you will not be able to choose delimiter.")
+  );
+
   $form['path_breadcrumbs_home_link'] = array(
     '#type' => 'fieldset',
     '#title' => t('Home link settings'),
@@ -136,16 +157,20 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#size' => 30,
   );
 
-  $form['path_breadcrumbs_rdfa'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Microformats')
-  );
-
-  $form['path_breadcrumbs_rdfa']['path_breadcrumbs_rdfa_enabled'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable RDFa for breadcrumbs'),
-    '#default_value' => variable_get('path_breadcrumbs_rdfa_enabled', 0),
-  );
+  $form['#submit'][] = 'path_breadcrumbs_ui_settings_submit';
 
   return system_settings_form($form);
+}
+
+/**
+ * Submit function for path_breadcrumbs_ui_settings form.
+ */
+function path_breadcrumbs_ui_settings_submit($form, &$form_state) {
+
+  // Flush there registry if internal render was changed to enable/disable system theme_breadcrumb() function.
+  $internal_render_new_value = $form_state['values']['path_breadcrumbs_internal_render'];
+  $internal_render_old_value = variable_get('path_breadcrumbs_internal_render', 1);
+  if ($internal_render_new_value != $internal_render_old_value) {
+    drupal_theme_rebuild();
+  }
 }
