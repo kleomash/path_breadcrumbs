@@ -145,9 +145,9 @@ function path_breadcrumbs_ui_theme() {
 /**
  * Multistep form that creates new path breacrumbs.
  */
-function path_breadcrumbs_ui_add_form($form, &$form_state, $show_navigation = TRUE) {
+function path_breadcrumbs_ui_add_form($form, &$form_state, $show_navigation = TRUE, $class = '') {
 
-  $form['#prefix'] = '<div id="path-breadcrumbs-ui-form-wrapper">';
+  $form['#prefix'] = '<div id="path-breadcrumbs-ui-form-wrapper" class="' . $class . '">';
   $form['#suffix'] = '</div>';
 
   if (!isset($form_state['storage']['step'])) {
@@ -1044,7 +1044,7 @@ function path_breadcrumbs_ui_edit_form($form, $form_state, $breadcrumb, $step) {
   $form_state['storage']['machine_name'] = $breadcrumb->machine_name;
   $form_state['storage']['step'] = $step;
 
-  $form = path_breadcrumbs_ui_add_form(array(), $form_state, FALSE);
+  $form = path_breadcrumbs_ui_add_form(array(), $form_state, FALSE, 'edit-form');
 
   // Disable machine name edition.
   if ($step == 1) {

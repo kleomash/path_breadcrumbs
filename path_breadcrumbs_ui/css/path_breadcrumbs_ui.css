@@ -70,9 +70,12 @@
 
 #path-breadcrumbs-ui-form-wrapper {
   border: 1px solid #AAAAAA;
-  float: left;
   height: 100%;
   padding: 1em;
+}
+
+#path-breadcrumbs-ui-form-wrapper.edit-form {
+  float: left;
   width: 100%;
 }
 
