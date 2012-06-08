@@ -5,6 +5,8 @@
  */
 function path_breadcrumbs_page_alter(&$page) {
 
+  drupal_set_message(current_path());
+
   // See if current page has path breadcrumbs.
   $breadcrumbs = path_breadcrumbs_load_variant(request_path());
 
