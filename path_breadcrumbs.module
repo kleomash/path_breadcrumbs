@@ -100,6 +100,18 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
     $breadcrumb[] = l(t($home), '<front>');
   }
 
+  // Replace placeholders by its value from url.
+  if (!empty($path_breadcrumb->arguments)) {
+    $replace = array();
+    $search = array();
+    foreach ($path_breadcrumb->arguments as $keyword => $argument) {
+      $search[] = '!' . $keyword;
+      $replace[] = arg($argument['position']);
+    }
+    $path_breadcrumb->titles = str_replace($search, $replace, $path_breadcrumb->titles);
+    $path_breadcrumb->paths = str_replace($search, $replace, $path_breadcrumb->paths);
+  }
+
   // Convert arguments from url to contexts.
   if (!empty($contexts)) {
     // Replace placeholders by current context values.

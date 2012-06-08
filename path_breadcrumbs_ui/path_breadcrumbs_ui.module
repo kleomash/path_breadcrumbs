@@ -608,12 +608,19 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
     ),
   );
 
-  // Build context substitutions.
   $rows = array();
 
+  // Build module substitutions.
+  $rows[] = array(check_plain('<front>'), t('Used for the link path to provide link to the front page.'));
+  $rows[] = array(check_plain('<none>'), t('Used for the link path to bring a breadcrumb as plain text.'));
+
+  // Build context substitutions.
   if (!empty($breadcrumb->arguments)) {
     ctools_include('context');
     foreach ($breadcrumb->arguments as $keyword => $arg) {
+
+      $rows[] = array('!' . $keyword, t('Value of placeholder as it presented in the page url.'));
+
       $argument = ctools_get_argument($arg['argument']);
 
       if (isset($arg['settings'])) {
