@@ -6,6 +6,17 @@
  */
 
 /**
+ * Page callback for clone action.
+ */
+function path_breadcrumbs_clone_breadcrumb($breadcrumbs) {
+  $breadcrumbs->machine_name .= '_clone';
+  unset($breadcrumbs->path_id);
+  path_breadcrumbs_object_cache_set($breadcrumbs->machine_name, $breadcrumbs);
+  $form_state = array('storage' => array('machine_name' => $breadcrumbs->machine_name));
+  return drupal_build_form('path_breadcrumbs_ui_add_form', $form_state);
+}
+
+/**
  * Page callback for arguments configuration in path.
  */
 function path_breadcrumbs_ui_configure_arguments_page($path_name, $keyword) {

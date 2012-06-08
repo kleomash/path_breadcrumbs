@@ -39,6 +39,10 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
       'href' => 'admin/structure/path-breadcrumbs/edit/' . $path->path_id,
     );
     $operations[] = array(
+      'title' => t('Clone'),
+      'href' => 'admin/structure/path-breadcrumbs/clone/' . $path->path_id,
+    );
+    $operations[] = array(
       'title' => t('Delete'),
       'href' => 'admin/structure/path-breadcrumbs/delete/' . $path->path_id,
     );

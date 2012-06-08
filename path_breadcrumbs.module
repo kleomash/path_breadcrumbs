@@ -234,7 +234,7 @@ function path_breadcrumbs_save($breadcrumb) {
   }
 
   // Remove data from ctools object cache table.
-  ctools_object_cache_clear('path_breadcrumbs', $breadcrumb->machine_name);
+  path_breadcrumbs_object_cache_clear($breadcrumb->machine_name);
 
   // Return path breadcrumb ID.
   return isset($path_id) ? $path_id : $breadcrumb->path_id;
@@ -464,4 +464,15 @@ function path_breadcrumbs_object_cache_set($name, $data) {
   ctools_include('object-cache');
   $data = (object) $data;
   ctools_object_cache_set('path_breadcrumbs', $name, $data);
+}
+
+/**
+ * Clear ctools object cache.
+ *
+ * @param $name
+ *   Path breadcrumb name.
+ */
+function path_breadcrumbs_object_cache_clear($name) {
+  ctools_include('object-cache');
+  ctools_object_cache_clear('path_breadcrumb', $name);
 }

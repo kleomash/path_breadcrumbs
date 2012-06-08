@@ -38,6 +38,15 @@ function path_breadcrumbs_ui_menu() {
     'type' => MENU_LOCAL_ACTION,
   );
 
+  $items['admin/structure/path-breadcrumbs/clone/%path_breadcrumbs'] = array(
+    'title' => 'Clone path breadcrumb',
+    'page callback' => 'path_breadcrumbs_clone_breadcrumb',
+    'page arguments' => array(4),
+    'access arguments' => array('administer path breadcrumbs'),
+    'type' => MENU_CALLBACK,
+    'file' => 'path_breadcrumbs_ui.pages.inc',
+  );
+
   $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs'] = array(
     'title' => 'Edit path breadcrumbs',
     'page callback' => 'path_breadcrumbs_ui_edit_page',
@@ -241,8 +250,16 @@ function path_breadcrumbs_ui_add_form_ajax_callback($form, $form_state) {
 function path_breadcrumbs_ui_add_form_submit($form, &$form_state) {
   $values = $form_state['values'];
 
-  // Initialize storage.
-  if (isset($values['machine_name'])) {
+  if (!empty($form_state['storage']['machine_name']) && !empty($values['machine_name'])) {
+    // Move temporary cache to new storage if machine name was changed..
+    if ($form_state['storage']['machine_name'] != $values['machine_name']) {
+      $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
+      path_breadcrumbs_object_cache_clear($form_state['storage']['machine_name']);
+      path_breadcrumbs_object_cache_set($values['machine_name'], $breadcrumb);
+    }
+  }
+  elseif (isset($values['machine_name'])) {
+     // Initialize storage.
     $form_state['storage']['machine_name'] = $values['machine_name'];
   }
 
