@@ -105,9 +105,14 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
     $replace = array();
     $search = array();
     foreach ($path_breadcrumb->arguments as $keyword => $argument) {
-      $search[] = '!' . $keyword;
+      $search[]  = '!' . $keyword;
       $replace[] = arg($argument['position']);
     }
+
+    // Add replace placeholder for current page title.
+    $search[]  = '!page_title';
+    $replace[] = drupal_get_title();
+
     $path_breadcrumb->titles = str_replace($search, $replace, $path_breadcrumb->titles);
     $path_breadcrumb->paths = str_replace($search, $replace, $path_breadcrumb->paths);
   }
@@ -260,6 +265,12 @@ function path_breadcrumbs_theme_registry_alter(&$theme_registry) {
 function path_breadcrumbs_breadcrumb($variables) {
   $breadcrumbs = $variables['breadcrumb'];
   if (!empty($breadcrumbs)) {
+
+    // Hide breadcrumb navigation if it contains only one element.
+    $hide_single_breadcrumb = variable_get('path_breadcrumbs_hide_single_breadcrumb', 0);
+    if ($hide_single_breadcrumb && count($breadcrumbs) == 1) {
+      return FALSE;
+    }
 
     // Provide a navigational heading to give context for breadcrumb links to
     // screen-reader users. Make the heading invisible with .element-invisible.

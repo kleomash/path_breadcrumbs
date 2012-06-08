@@ -613,6 +613,7 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
   // Build module substitutions.
   $rows[] = array(check_plain('<front>'), t('Used for the link path to provide link to the front page.'));
   $rows[] = array(check_plain('<none>'), t('Used for the link path to bring a breadcrumb as plain text.'));
+  $rows[] = array('!page_title', t('Current page title'));
 
   // Build context substitutions.
   if (!empty($breadcrumb->arguments)) {

@@ -120,21 +120,32 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#type' => 'checkbox',
     '#title' => t('Enable RDFa for breadcrumbs'),
     '#default_value' => variable_get('path_breadcrumbs_rdfa_enabled', 0),
+    '#description' => t('This checkbox provide microformats support for breadcrumbs. It is important to build a structure of a site in the SERP.')
+  );
+
+  $form['path_breadcrumbs_settings']['path_breadcrumbs_hide_single_breadcrumb'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Hide breadcrumbs navigation for single breadcrumb'),
+    '#default_value' => variable_get('path_breadcrumbs_hide_single_breadcrumb', 0),
+    '#description' => t('If breacrumbs navigation contains only one breadcrumb than breadcrumb navigation will be hidden.'),
   );
 
   $internal_render = variable_get('path_breadcrumbs_internal_render', 1);
   if (!$internal_render) {
     $form['path_breadcrumbs_settings']['path_breadcrumbs_delimited']['#disabled'] = TRUE;
     $form['path_breadcrumbs_settings']['path_breadcrumbs_rdfa_enabled']['#disabled'] = TRUE;
-    $form['path_breadcrumbs_settings']['path_breadcrumbs_delimited']['#description'] .= '<div style="color:red">' . t('You are not able to choose delimited until internal render is disabled.') . '</div>';
-    $form['path_breadcrumbs_settings']['path_breadcrumbs_rdfa_enabled']['#description'] = '<div style="color:red">' . t('You are not able to use microformats until internal render is disabled.') . '</div>';
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_hide_single_breadcrumb']['#disabled'] = TRUE;
+    $notice = '<div style="color:red">' . t('You are not able to use this feature until internal render is disabled.') . '</div>';
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_delimited']['#description'] .= $notice;
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_rdfa_enabled']['#description'] .= $notice;
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_hide_single_breadcrumb']['#description'] .= $notice;
   }
 
   $form['path_breadcrumbs_settings']['path_breadcrumbs_internal_render'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use module breadcrumbs render function'),
     '#default_value' => variable_get('path_breadcrumbs_internal_render', 1),
-    '#description' => t("If this value checked module will replace system or theme breadcrumb render function by module's one.<br>Note that if this checkbox is disabled module will not support RDfa anymore. Moreover you will not be able to choose delimiter.")
+    '#description' => t("If this value checked module will replace system or theme breadcrumb render function by module's one.<br>Note that if this checkbox is disabled module will not be able to implement settings above.")
   );
 
   $form['path_breadcrumbs_home_link'] = array(
@@ -166,8 +177,7 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
  * Submit function for path_breadcrumbs_ui_settings form.
  */
 function path_breadcrumbs_ui_settings_submit($form, &$form_state) {
-
-  // Flush there registry if internal render was changed to enable/disable system theme_breadcrumb() function.
+  // Flush theme registry if internal render was changed to enable/disable system render in theme_breadcrumb() function.
   $internal_render_new_value = $form_state['values']['path_breadcrumbs_internal_render'];
   $internal_render_old_value = variable_get('path_breadcrumbs_internal_render', 1);
   if ($internal_render_new_value != $internal_render_old_value) {
