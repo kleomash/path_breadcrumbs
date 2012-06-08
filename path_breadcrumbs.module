@@ -4,11 +4,8 @@
  * Implements hook_page_alter().
  */
 function path_breadcrumbs_page_alter(&$page) {
-
-  drupal_set_message(current_path());
-
   // See if current page has path breadcrumbs.
-  $breadcrumbs = path_breadcrumbs_load_variant(request_path());
+  $breadcrumbs = path_breadcrumbs_load_variant(current_path());
 
   // Set breadcrumbs for current page if it exists.
   if ($breadcrumbs) {
