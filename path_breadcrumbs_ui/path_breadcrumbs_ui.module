@@ -31,7 +31,7 @@ function path_breadcrumbs_ui_menu() {
   );
 
   $items['admin/structure/path-breadcrumbs/create'] = array(
-    'title' => 'Create path breadcrumbs',
+    'title' => 'Create new path breadcrumbs',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('path_breadcrumbs_ui_add_form'),
     'access arguments' => array('administer path breadcrumbs'),
@@ -43,8 +43,24 @@ function path_breadcrumbs_ui_menu() {
     'page callback' => 'path_breadcrumbs_clone_breadcrumb',
     'page arguments' => array(4),
     'access arguments' => array('administer path breadcrumbs'),
-    'type' => MENU_CALLBACK,
-    'file' => 'path_breadcrumbs_ui.pages.inc',
+    'file' => 'path_breadcrumbs_ui.admin.inc',
+  );
+
+  $items['admin/structure/path-breadcrumbs/export/%path_breadcrumbs'] = array(
+    'title' => 'Export path breadcrumb',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('path_breadcrumbs_export_form', 4),
+    'access arguments' => array('administer path breadcrumbs'),
+    'file' => 'path_breadcrumbs_ui.admin.inc',
+  );
+
+  $items['admin/structure/path-breadcrumbs/import'] = array(
+    'title' => 'Import path breadcrumbs',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('path_breadcrumbs_import_form'),
+    'access arguments' => array('administer path breadcrumbs'),
+    'file' => 'path_breadcrumbs_ui.admin.inc',
+    'type' => MENU_LOCAL_ACTION,
   );
 
   $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs'] = array(
@@ -53,7 +69,6 @@ function path_breadcrumbs_ui_menu() {
     'page arguments' => array(4),
     'access arguments' => array('administer path breadcrumbs'),
     'file' => 'path_breadcrumbs_ui.pages.inc',
-    'type' => MENU_CALLBACK,
   );
 
   $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs/ajax/%'] = array(
@@ -71,7 +86,6 @@ function path_breadcrumbs_ui_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('path_breadcrumbs_ui_delete_form', 4),
     'access arguments' => array('administer path breadcrumbs'),
-    'type' => MENU_CALLBACK,
   );
 
   $items['admin/structure/path-breadcrumbs/disable/%path_breadcrumbs'] = array(
@@ -259,7 +273,7 @@ function path_breadcrumbs_ui_add_form_submit($form, &$form_state) {
     }
   }
   elseif (isset($values['machine_name'])) {
-     // Initialize storage.
+    // Initialize storage.
     $form_state['storage']['machine_name'] = $values['machine_name'];
   }
 

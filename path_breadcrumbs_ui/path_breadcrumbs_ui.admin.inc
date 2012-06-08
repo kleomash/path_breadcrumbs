@@ -43,6 +43,10 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
       'href' => 'admin/structure/path-breadcrumbs/clone/' . $path->path_id,
     );
     $operations[] = array(
+      'title' => t('Export'),
+      'href' => 'admin/structure/path-breadcrumbs/export/' . $path->path_id,
+    );
+    $operations[] = array(
       'title' => t('Delete'),
       'href' => 'admin/structure/path-breadcrumbs/delete/' . $path->path_id,
     );
@@ -187,4 +191,101 @@ function path_breadcrumbs_ui_settings_submit($form, &$form_state) {
   if ($internal_render_new_value != $internal_render_old_value) {
     drupal_theme_rebuild();
   }
+}
+
+/**
+ * Form for path breadcrumbs clone.
+ */
+function path_breadcrumbs_clone_breadcrumb($path_breadcrumb) {
+  $path_breadcrumb->machine_name .= '_clone';
+  unset($path_breadcrumb->path_id);
+  path_breadcrumbs_object_cache_set($path_breadcrumb->machine_name, $path_breadcrumb);
+  $form_state = array('storage' => array('machine_name' => $path_breadcrumb->machine_name));
+  return drupal_build_form('path_breadcrumbs_ui_add_form', $form_state);
+}
+
+/**
+ * Form for object export.
+ */
+function path_breadcrumbs_export_form($form, $form_state, $path_breadcrumb) {
+
+  drupal_set_title(t('Export path breadcrumb "!name"', array('!name' => $path_breadcrumb->name)));
+
+  ctools_include('export');
+  $objects = ctools_export_load_object('path_breadcrumbs', 'all', array($path_breadcrumb->path_id));
+
+  if (empty($objects[$path_breadcrumb->path_id])) {
+    return t('It is not possible to export path breadcrumb right now. May be you need to flush site cache.');
+  }
+
+  $object = $objects[$path_breadcrumb->path_id];
+  $code = ctools_export_crud_export('path_breadcrumbs', $object);
+  $lines = substr_count($code, "\n");
+
+  $form['export'] = array(
+    '#title' => t('Export data'),
+    '#type' => 'textarea',
+    '#value' => $code,
+    '#rows' => $lines,
+    '#description' => t('Copy the export text and paste it into import area.'),
+  );
+
+  return $form;
+}
+
+/**
+ * Form for object import.
+ */
+function path_breadcrumbs_import_form($form, $form_state) {
+
+  $form['import'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Paste code here to import path breadcrumbs'),
+  );
+
+  $form['actions'] = array(
+    '#type' => 'action',
+  );
+
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Import'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit callback for path breadcrumbs import form.
+ */
+function path_breadcrumbs_import_form_submit($form, &$form_state) {
+  $code = $form_state['values']['import'];
+  ctools_include('export');
+
+  $path_breadcrumb = ctools_export_crud_import('path_breadcrumbs', $code);
+
+  $result = db_merge('path_breadcrumbs')
+    ->key(array(
+      'machine_name' => $path_breadcrumb->machine_name
+    ))
+    ->fields(array(
+      'name' => $path_breadcrumb->name,
+      'path' => $path_breadcrumb->path,
+      'data' => $path_breadcrumb->data,
+      'weight' => $path_breadcrumb->weight,
+      'disabled' => $path_breadcrumb->disabled,
+    ))
+    ->execute();
+
+  if ($result == 1) {
+    drupal_set_message(t('Path breadcrumb "!name" was successfully imported.', array('!name' => $path_breadcrumb->name)));
+  }
+  elseif ($result == 2) {
+    drupal_set_message(t('Path breadcrumb "!name" was successfully updated.', array('!name' => $path_breadcrumb->name)));
+  }
+  else {
+    drupal_set_message(t('Could not import path breadcrumb.', 'error'));
+  }
+
+  $form_state['redirect'] = 'admin/structure/path-breadcrumbs';
 }

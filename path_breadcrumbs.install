@@ -63,7 +63,20 @@ function path_breadcrumbs_schema() {
       ),
     ),
     'primary key' => array('path_id'),
+    'export' => array(
+      'key' => 'path_id',
+      'identifier' => 'path_breadcrumb',
+      'default hook' => 'path_breadcrumb_settings_info',
+      'can disable' => FALSE,
+      'api' => array(
+        'owner' => 'path_breadcrumbs',
+        'api' => 'path_breadcrumbs',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
   );
+
   return $schema;
 }
 
@@ -125,14 +138,14 @@ function path_breadcrumbs_update_7200(&$sandbox) {
   foreach ($new_variants as $variant) {
     db_insert('path_breadcrumbs')
       ->fields(array(
-        'path_id' => $variant->path_id,
-        'name' => $variant->name,
-        'machine_name' => $variant->machine_name,
-        'path' => $variant->path,
-        'data' => $variant->data,
-        'weight' => $variant->path_id,
-        'disabled' => 0,
-      ))
+      'path_id' => $variant->path_id,
+      'name' => $variant->name,
+      'machine_name' => $variant->machine_name,
+      'path' => $variant->path,
+      'data' => $variant->data,
+      'weight' => $variant->path_id,
+      'disabled' => 0,
+    ))
       ->execute();
   }
 
