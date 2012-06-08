@@ -229,6 +229,50 @@ function path_breadcrumbs_save($breadcrumb) {
 }
 
 /**
+ * Implements hook_theme_registry_alter().
+ *
+ * @param $theme_registry
+ *   Drupal theme registry that could be changed.
+ */
+function path_breadcrumbs_theme_registry_alter(&$theme_registry) {
+  $theme_registry['breadcrumb']['theme path'] = drupal_get_path('module', 'path_breadcrumbs');
+  $theme_registry['breadcrumb']['function'] = 'path_breadcrumbs_breadcrumb';
+}
+
+/**
+ * Override default theme_breadcrumb().
+ *
+ * @param $variables
+ *   Contains array with breadcrumbs.
+ * @return string
+ *   Rendered breadcrumbs.
+ */
+function path_breadcrumbs_breadcrumb($variables) {
+  $breadcrumbs = $variables['breadcrumb'];
+  if (!empty($breadcrumbs)) {
+    // Provide a navigational heading to give context for breadcrumb links to
+    // screen-reader users. Make the heading invisible with .element-invisible.
+    $output = '<h2 class="element-invisible">' . t('You are here') . '</h2>';
+
+    // Add classes to the breadcrumbs.
+    foreach ($breadcrumbs as $key => $breadcrumb) {
+      $classes = array();
+      if ($key == 0) {
+        $classes[] = 'first';
+      }
+      if (count($breadcrumbs) == $key + 1) {
+        $classes[] = 'last';
+      }
+      $classes[] = $key % 2 ? 'even' : 'odd';
+      $breadcrumbs[$key] = '<span class="' . implode(' ', $classes) . '">' . $breadcrumb . '</span>';
+    }
+
+    $output .= '<div class="breadcrumb">' . implode(' » ', $breadcrumbs) . '</div>';
+    return $output;
+  }
+}
+
+/**
  * Delete path breadcrumb.
  *
  * @param  $path_breadcrumb
