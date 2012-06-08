@@ -103,6 +103,19 @@ function path_breadcrumbs_ui_breadcrumbs_list_submit($form, &$form_state) {
  */
 function path_breadcrumbs_ui_settings($form, $form_state) {
 
+  $form['path_breadcrumbs_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Breadcrumbs settings'),
+  );
+
+  $form['path_breadcrumbs_settings']['path_breadcrumbs_delimited'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Delimiter'),
+    '#default_value' => variable_get('path_breadcrumbs_delimited', '»'),
+    '#size' => 3,
+    '#description' => t('Symbol that separates breadcrumbs.'),
+  );
+
   $form['path_breadcrumbs_home_link'] = array(
     '#type' => 'fieldset',
     '#title' => t('Home link settings'),
@@ -119,10 +132,11 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#type' => 'textfield',
     '#title' => t('Home link title'),
     '#default_value' => variable_get('path_breadcrumbs_home_link_title', 'Home'),
-    '#description' => t('Title of the link that points to the front page.')
+    '#description' => t('Title of the link that points to the front page.'),
+    '#size' => 30,
   );
 
-  /*$form['path_breadcrumbs_rdfa'] = array(
+  $form['path_breadcrumbs_rdfa'] = array(
     '#type' => 'fieldset',
     '#title' => t('Microformats')
   );
@@ -131,7 +145,7 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#type' => 'checkbox',
     '#title' => t('Enable RDFa for breadcrumbs'),
     '#default_value' => variable_get('path_breadcrumbs_rdfa_enabled', 0),
-  );*/
+  );
 
   return system_settings_form($form);
 }

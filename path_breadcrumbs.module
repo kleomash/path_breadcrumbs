@@ -130,9 +130,16 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
       $title = t($title);
     }
 
+    // Add options for RDFa support.
+    $rdfa_support = variable_get('path_breadcrumbs_rdfa_enabled', 0);
+    $options = array();
+    if ($rdfa_support) {
+      $options = array('attributes' => array('rel' => 'v:url', 'property' => 'v:title'), 'absolute' => TRUE);
+    }
+
     // Set a breadcrumb as a link or as a plain text.
     if (isset($paths[$key]) && $paths[$key] != '<none>') {
-      $breadcrumb[] = l(check_plain($title), $paths[$key]);
+      $breadcrumb[] = l(check_plain($title), $paths[$key], $options);
     }
     elseif (isset($paths[$key]) && $paths[$key] == '<none>') {
       $breadcrumb[] = check_plain($title);
@@ -254,6 +261,15 @@ function path_breadcrumbs_breadcrumb($variables) {
     // screen-reader users. Make the heading invisible with .element-invisible.
     $output = '<h2 class="element-invisible">' . t('You are here') . '</h2>';
 
+    // Check rdfa support.
+    $rdfa_support = variable_get('path_breadcrumbs_rdfa_enabled', 0);
+    $elem_property = '';
+    $root_property = '';
+    if ($rdfa_support) {
+      $elem_property = 'typeof="v:Breadcrumb"';
+      $root_property = 'xmlns:v="http://rdf.data-vocabulary.org/#"';
+    }
+
     // Add classes to the breadcrumbs.
     foreach ($breadcrumbs as $key => $breadcrumb) {
       $classes = array();
@@ -264,10 +280,12 @@ function path_breadcrumbs_breadcrumb($variables) {
         $classes[] = 'last';
       }
       $classes[] = $key % 2 ? 'even' : 'odd';
-      $breadcrumbs[$key] = '<span class="' . implode(' ', $classes) . '">' . $breadcrumb . '</span>';
+
+      $breadcrumbs[$key] = '<span class="' . implode(' ', $classes) . '" ' . $elem_property . '>' . $breadcrumb . '</span>';
     }
 
-    $output .= '<div class="breadcrumb">' . implode(' » ', $breadcrumbs) . '</div>';
+    $delimiter = variable_get('path_breadcrumbs_delimited', '»');
+    $output .= '<div class="breadcrumb" ' . $root_property . '>' . implode(' ' . trim($delimiter) . ' ', $breadcrumbs) . '</div>';
     return $output;
   }
 }
