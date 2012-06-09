@@ -144,7 +144,7 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
 
     // Set a breadcrumb as a link or as a plain text.
     if (isset($paths[$key]) && $paths[$key] != '<none>') {
-      $breadcrumb[] = l(check_plain($title), $paths[$key], $options);
+      $breadcrumb[] = l($title, $paths[$key], $options);
     }
     elseif (isset($paths[$key]) && $paths[$key] == '<none>') {
       $breadcrumb[] = check_plain($title);

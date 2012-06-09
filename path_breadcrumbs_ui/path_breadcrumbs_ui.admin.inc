@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @File
+ * @file
  * Administrative callbacks for PATH BREADCRUMBS UI module.
  */
 
@@ -153,7 +153,7 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#type' => 'checkbox',
     '#title' => t('Use module breadcrumbs render function'),
     '#default_value' => variable_get('path_breadcrumbs_internal_render', 1),
-    '#description' => t("If this value checked module will replace system or theme breadcrumb render function by module's one.<br>Note that if this checkbox is disabled module will not be able to implement settings above.")
+    '#description' => t("If this value checked module will replace system or theme breadcrumb render function by module's one.<br/>Note that if this checkbox is disabled module will not be able to implement settings above.")
   );
 
   $form['path_breadcrumbs_home_link'] = array(
@@ -278,10 +278,10 @@ function path_breadcrumbs_import_form_submit($form, &$form_state) {
     ->execute();
 
   if ($result == 1) {
-    drupal_set_message(t('Path breadcrumb "!name" was successfully imported.', array('!name' => $path_breadcrumb->name)));
+    drupal_set_message(filter_xss(t('Path breadcrumb "!name" was successfully imported.', array('!name' => $path_breadcrumb->name))));
   }
   elseif ($result == 2) {
-    drupal_set_message(t('Path breadcrumb "!name" was successfully updated.', array('!name' => $path_breadcrumb->name)));
+    drupal_set_message(filter_xss(t('Path breadcrumb "!name" was successfully updated.', array('!name' => $path_breadcrumb->name))));
   }
   else {
     drupal_set_message(t('Could not import path breadcrumb.', 'error'));
