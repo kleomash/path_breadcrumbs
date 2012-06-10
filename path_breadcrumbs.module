@@ -197,11 +197,11 @@ function path_breadcrumbs_breadcrumb($variables) {
     }
 
     // Add options for rich snippets.
-    $snippet = variable_get('path_breadcrumbs_rich_snippets', PATH_BREADCRUMBS_RICH_SNIPPETS_DISABLED);
     $elem_tag = 'span';
     $elem_property = '';
     $root_property = '';
     $options = array();
+    $snippet = variable_get('path_breadcrumbs_rich_snippets', PATH_BREADCRUMBS_RICH_SNIPPETS_DISABLED);
     if ($snippet == PATH_BREADCRUMBS_RICH_SNIPPETS_RDFA) {
 
       // Add link options for RDFa support.

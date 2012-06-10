@@ -12,7 +12,7 @@ function path_breadcrumbs_uninstall() {
   variable_del('path_breadcrumbs_home_link_enabled');
   variable_del('path_breadcrumbs_home_link_title');
   variable_del('path_breadcrumbs_delimiter');
-  variable_del('path_breadcrumbs_rdfa_enabled');
+  variable_del('path_breadcrumbs_rich_snippets');
   variable_del('path_breadcrumbs_hide_single_breadcrumb');
   variable_del('path_breadcrumbs_internal_render');
 }
@@ -163,7 +163,19 @@ function path_breadcrumbs_update_7200(&$sandbox) {
  * Migrate variable for delimited to a new variable name storage.
  */
 function path_breadcrumbs_update_7208() {
+
+  // Move delimiter value from old variable to a new one.
   $delimiter = variable_get('path_breadcrumbs_delimited', '»');
   variable_set('path_breadcrumbs_delimiter', $delimiter);
   variable_del('path_breadcrumbs_delimited');
+
+  // Move RDFa support from old variable to a new one.
+  $rdfa_enabled = variable_get('path_breadcrumbs_rdfa_enabled', 0);
+  if ($rdfa_enabled) {
+    variable_set('path_breadcrumbs_rich_snippets', PATH_BREADCRUMBS_RICH_SNIPPETS_RDFA);
+  }
+  else {
+    variable_set('path_breadcrumbs_rich_snippets', PATH_BREADCRUMBS_RICH_SNIPPETS_DISABLED);
+  }
+  variable_del('path_breadcrumbs_rdfa_enabled');
 }
