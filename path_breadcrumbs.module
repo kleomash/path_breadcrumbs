@@ -280,7 +280,7 @@ function path_breadcrumbs_save($breadcrumb) {
   if (!empty($breadcrumb->access) && !empty($breadcrumb->logic)) {
     $breadcrumb->access['logic'] = $breadcrumb->logic;
   }
-  else {
+  elseif (empty($breadcrumb->access)) {
     $breadcrumb->access = array();
   }
 
