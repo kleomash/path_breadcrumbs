@@ -312,7 +312,7 @@ function _path_breadcrumbs_ui_form_step_basic_settings(&$form, &$form_state) {
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Path name'),
-    '#description' => t("Human-readable mame of breadcrumb's path"),
+    '#description' => t("Human-readable mame of breadcrumb navigation"),
     '#required' => TRUE,
     '#maxlength' => 64,
   );

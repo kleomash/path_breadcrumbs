@@ -124,11 +124,16 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#description' => t('Symbol that separates breadcrumbs.'),
   );
 
-  $form['path_breadcrumbs_settings']['path_breadcrumbs_rdfa_enabled'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable RDFa for breadcrumbs'),
-    '#default_value' => variable_get('path_breadcrumbs_rdfa_enabled', 0),
-    '#description' => t('This checkbox provide microformats support for breadcrumbs. It is important to build a structure of a site in the SERP.')
+  $form['path_breadcrumbs_settings']['path_breadcrumbs_rich_snippets'] = array(
+    '#type' => 'select',
+    '#title' => t('Rich snippets support'),
+    '#options' => array(
+      PATH_BREADCRUMBS_RICH_SNIPPETS_DISABLED => t('Disabled'),
+      PATH_BREADCRUMBS_RICH_SNIPPETS_RDFA => t('RDFa'),
+      PATH_BREADCRUMBS_RICH_SNIPPETS_MICRODATA => t('Microdata'),
+    ),
+    '#default_value' => variable_get('path_breadcrumbs_rich_snippets', PATH_BREADCRUMBS_RICH_SNIPPETS_DISABLED),
+    '#description' => t('Provides rich snippets support for breadcrumbs. It is important to build a structure of a site in the SERP.')
   );
 
   $form['path_breadcrumbs_settings']['path_breadcrumbs_hide_single_breadcrumb'] = array(
@@ -148,11 +153,11 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
   $internal_render = variable_get('path_breadcrumbs_internal_render', 1);
   if (!$internal_render) {
     $form['path_breadcrumbs_settings']['path_breadcrumbs_delimiter']['#disabled'] = TRUE;
-    $form['path_breadcrumbs_settings']['path_breadcrumbs_rdfa_enabled']['#disabled'] = TRUE;
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_rich_snippets']['#disabled'] = TRUE;
     $form['path_breadcrumbs_settings']['path_breadcrumbs_hide_single_breadcrumb']['#disabled'] = TRUE;
     $notice = '<div style="color:red">' . t('You are not able to use this feature until internal render is disabled.') . '</div>';
     $form['path_breadcrumbs_settings']['path_breadcrumbs_delimiter']['#description'] .= $notice;
-    $form['path_breadcrumbs_settings']['path_breadcrumbs_rdfa_enabled']['#description'] .= $notice;
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_rich_snippets']['#description'] .= $notice;
     $form['path_breadcrumbs_settings']['path_breadcrumbs_hide_single_breadcrumb']['#description'] .= $notice;
   }
 
