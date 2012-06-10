@@ -11,7 +11,7 @@
 function path_breadcrumbs_uninstall() {
   variable_del('path_breadcrumbs_home_link_enabled');
   variable_del('path_breadcrumbs_home_link_title');
-  variable_del('path_breadcrumbs_delimited');
+  variable_del('path_breadcrumbs_delimiter');
   variable_del('path_breadcrumbs_rdfa_enabled');
   variable_del('path_breadcrumbs_hide_single_breadcrumb');
   variable_del('path_breadcrumbs_internal_render');
@@ -157,4 +157,13 @@ function path_breadcrumbs_update_7200(&$sandbox) {
   module_enable(array('path_breadcrumbs_ui'));
 
   return t('Path breadcrumbs successfully converted data from old table to a new one.');
+}
+
+/**
+ * Migrate variable for delimited to a new variable name storage.
+ */
+function path_breadcrumbs_update_7208() {
+  $delimiter = variable_get('path_breadcrumbs_delimited', '»');
+  variable_set('path_breadcrumbs_delimiter', $delimiter);
+  variable_del('path_breadcrumbs_delimited');
 }

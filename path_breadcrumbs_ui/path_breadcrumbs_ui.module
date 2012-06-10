@@ -31,7 +31,7 @@ function path_breadcrumbs_ui_menu() {
   );
 
   $items['admin/structure/path-breadcrumbs/create'] = array(
-    'title' => 'Create new path breadcrumbs',
+    'title' => 'Create new path breadcrumb',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('path_breadcrumbs_ui_add_form'),
     'access arguments' => array('administer path breadcrumbs'),
@@ -55,7 +55,7 @@ function path_breadcrumbs_ui_menu() {
   );
 
   $items['admin/structure/path-breadcrumbs/import'] = array(
-    'title' => 'Import path breadcrumbs',
+    'title' => 'Import path breadcrumb',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('path_breadcrumbs_import_form'),
     'access arguments' => array('administer path breadcrumbs'),

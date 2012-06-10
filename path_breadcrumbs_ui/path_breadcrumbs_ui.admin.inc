@@ -116,10 +116,10 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#title' => t('Breadcrumbs settings'),
   );
 
-  $form['path_breadcrumbs_settings']['path_breadcrumbs_delimited'] = array(
+  $form['path_breadcrumbs_settings']['path_breadcrumbs_delimiter'] = array(
     '#type' => 'textfield',
     '#title' => t('Delimiter'),
-    '#default_value' => variable_get('path_breadcrumbs_delimited', '»'),
+    '#default_value' => variable_get('path_breadcrumbs_delimiter', '»'),
     '#size' => 3,
     '#description' => t('Symbol that separates breadcrumbs.'),
   );
@@ -138,13 +138,20 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#description' => t('If breacrumbs navigation contains only one breadcrumb than breadcrumb navigation will be hidden.'),
   );
 
+  $form['path_breadcrumbs_settings']['path_breadcrumbs_decode_entities'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Decode html entities'),
+    '#description' => t('Converts quotes in the breadcrumbs to their applicable characters.'),
+    '#default_value' => variable_get('path_breadcrumbs_decode_entities', TRUE),
+  );
+
   $internal_render = variable_get('path_breadcrumbs_internal_render', 1);
   if (!$internal_render) {
-    $form['path_breadcrumbs_settings']['path_breadcrumbs_delimited']['#disabled'] = TRUE;
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_delimiter']['#disabled'] = TRUE;
     $form['path_breadcrumbs_settings']['path_breadcrumbs_rdfa_enabled']['#disabled'] = TRUE;
     $form['path_breadcrumbs_settings']['path_breadcrumbs_hide_single_breadcrumb']['#disabled'] = TRUE;
     $notice = '<div style="color:red">' . t('You are not able to use this feature until internal render is disabled.') . '</div>';
-    $form['path_breadcrumbs_settings']['path_breadcrumbs_delimited']['#description'] .= $notice;
+    $form['path_breadcrumbs_settings']['path_breadcrumbs_delimiter']['#description'] .= $notice;
     $form['path_breadcrumbs_settings']['path_breadcrumbs_rdfa_enabled']['#description'] .= $notice;
     $form['path_breadcrumbs_settings']['path_breadcrumbs_hide_single_breadcrumb']['#description'] .= $notice;
   }
