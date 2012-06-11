@@ -74,11 +74,12 @@ function path_breadcrumbs_load_variant($path) {
       $breadcrumb = path_breadcrumbs_load($variant->path_id);
       $contexts = path_breadcrumbs_get_contexts_from_arguments($breadcrumb->arguments);
 
-      // If breadcrumb contain arguments but do not contains context
+      // If breadcrumb contains broken context
       // it means that unable to load context from URL.
-      if (!empty($breadcrumb->arguments) && empty($contexts)) {
+      if (isset($contexts['broken_context'])) {
         continue;
       }
+
 
       // Check if breadcrumb is accessible.
       if (!empty($breadcrumb->access)) {
@@ -484,6 +485,9 @@ function path_breadcrumbs_get_contexts_from_arguments($arguments, $empty = FALSE
           $context->keyword = $keyword;
           $context->identifier = $argument['identifier'];
           $contexts[$keyword] = $context;
+        }
+        else {
+          $contexts['broken_context'] = $keyword;
         }
       }
     }
