@@ -3,4 +3,4 @@ description = Allow to create custom breadcrumbs for all pages on the site using
 core = 7.x
 package = Path breadcrumbs
 
-dependencies[] = ctools
+dependencies[] = ctools (1.0)
