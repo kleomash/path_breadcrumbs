@@ -212,7 +212,7 @@ function path_breadcrumbs_breadcrumb($variables) {
     if ($snippet == PATH_BREADCRUMBS_RICH_SNIPPETS_RDFA) {
 
       // Add link options for RDFa support.
-      $options = array('attributes' => array('rel' => 'v:url', 'property' => 'v:title'), 'absolute' => TRUE);
+      $options = array('attributes' => array('rel' => 'v:url', 'property' => 'v:title'), 'absolute' => TRUE, 'html' => TRUE);
 
       // Set correct properties for RDFa support.
       $elem_property = 'typeof="v:Breadcrumb"';
