@@ -918,18 +918,11 @@ function path_breadcrumbs_ui_argument_context_form($form, $form_state, $path_nam
 
     case 2:
 
-      // Get argument's default identifier.
-      $path_name = $form_state['storage']['path_name'];
-      $keyword = $form_state['storage']['keyword'];
-      $breadcrumb = path_breadcrumbs_object_cache_get($path_name);
-      if (!empty($breadcrumb->arguments[$keyword]['settings']['identifier'])) {
-        $identifier = $breadcrumb->arguments[$keyword]['settings']['identifier'];
-      }
-      else {
-        $plugins = ctools_get_arguments();
-        $argument = $plugins[$form_state['storage']['argument']];
-        $identifier = $argument['title'];
-      }
+      // Apply default value.
+      $plugins = ctools_get_arguments();
+      $argument = $plugins[$form_state['storage']['argument']];
+      $identifier = $argument['title'];
+
 
       $form['settings']['identifier'] = array(
         '#title' => t('Context identifier'),
@@ -944,8 +937,19 @@ function path_breadcrumbs_ui_argument_context_form($form, $form_state, $path_nam
         $form['settings'] += $settings_form['settings'];
       }
 
+      // Apply argument's stored values as default values.
+      $path_name = $form_state['storage']['path_name'];
+      $keyword = $form_state['storage']['keyword'];
+      $breadcrumb = path_breadcrumbs_object_cache_get($path_name);
+      if (!empty($breadcrumb->arguments[$keyword]['settings'])) {
+        foreach ($breadcrumb->arguments[$keyword]['settings'] as $name => $value) {
+          if (isset($form['settings'][$name])) {
+            $form['settings'][$name]['#default_value'] = $value;
+          }
+        }
+      }
+
       _path_breadcrumbs_ui_form_attach_buttons($form, array('prev', 'finish'), 'path_breadcrumbs_ui_argument_context_form');
-      _path_breadcrumbs_ui_form_apply_default_values($form, $form_state['storage']['path_name']);
 
       break;
   }
