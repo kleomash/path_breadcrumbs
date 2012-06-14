@@ -23,6 +23,8 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
     $form[$path->path_id]['title']['#markup'] = $path->name;
     $form[$path->path_id]['name']['#markup'] = $path->machine_name;
     $form[$path->path_id]['path']['#markup'] = $path->path;
+    // All paths are in $form_state['paths'].
+    $form[$path->path_id]['#parents'] = array('paths', $path->path_id);
 
     // Create operations for current breadcrumb.
     $operations = array();
@@ -92,14 +94,16 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
  * Submit callback for path_breadcrumbs_ui_breadcrumbs_list form.
  */
 function path_breadcrumbs_ui_breadcrumbs_list_submit($form, &$form_state) {
-  foreach ($form_state['values'] as $path_id => $value) {
-    if (isset($value['weight'])) {
-      db_update('path_breadcrumbs')
-        ->fields(array(
-        'weight' => $value['weight'],
-      ))
-        ->condition('path_id', $path_id)
-        ->execute();
+  if (!empty($form_state['values']['paths'])) {
+    foreach ($form_state['values']['paths'] as $path_id => $value) {
+      if (isset($value['weight'])) {
+        db_update('path_breadcrumbs')
+          ->fields(array(
+          'weight' => $value['weight'],
+        ))
+          ->condition('path_id', $path_id)
+          ->execute();
+      }
     }
   }
 
