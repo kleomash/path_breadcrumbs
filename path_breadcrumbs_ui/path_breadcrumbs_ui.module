@@ -311,8 +311,8 @@ function _path_breadcrumbs_ui_form_step_basic_settings(&$form, &$form_state) {
 
   $form['name'] = array(
     '#type' => 'textfield',
-    '#title' => t('Path name'),
-    '#description' => t("Human-readable mame of breadcrumb navigation"),
+    '#title' => t('Breadcrumb definition'),
+    '#description' => t("Human-readable name of breadcrumb navigation"),
     '#required' => TRUE,
     '#maxlength' => 64,
   );
@@ -570,14 +570,14 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
   $form['translatable'] = array(
     '#type' => 'checkbox',
     '#title' => t('Translatable'),
-    '#description' => t('Every breadcrumb will be availible for translation.')
+    '#description' => t('Every breadcrumb will be available for translation.')
   );
 
   $home = isset($breadcrumb->home) ? $breadcrumb->home : variable_get('path_breadcrumbs_home_link_enabled', 1);
   $form['home'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Prepend Home Link to the Breadcrumb'),
-    '#description' => t('First breadcrumb will be a link to the front page.'),
+    '#title' => t('Prepend Home link to the breadcrumb'),
+    '#description' => t('First breadcrumb will be a link to the front page. This setting will override the default behavior.'),
     '#default_value' => $home,
   );
 

@@ -144,12 +144,12 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#type' => 'checkbox',
     '#title' => t('Hide breadcrumbs navigation for single breadcrumb'),
     '#default_value' => variable_get('path_breadcrumbs_hide_single_breadcrumb', 0),
-    '#description' => t('If breacrumbs navigation contains only one breadcrumb than breadcrumb navigation will be hidden.'),
+    '#description' => t('If breacrumbs navigation contains only one breadcrumb then breadcrumb navigation will be hidden.'),
   );
 
   $form['path_breadcrumbs_settings']['path_breadcrumbs_decode_entities'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Decode html entities'),
+    '#title' => t('Decode HTML entities'),
     '#description' => t('Converts quotes in the breadcrumbs to their applicable characters.'),
     '#default_value' => variable_get('path_breadcrumbs_decode_entities', TRUE),
   );
@@ -169,7 +169,7 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#type' => 'checkbox',
     '#title' => t('Use module breadcrumbs render function'),
     '#default_value' => variable_get('path_breadcrumbs_internal_render', 1),
-    '#description' => t("If this value checked module will replace system or theme breadcrumb render function by module's one.<br/>Note that if this checkbox is disabled module will not be able to implement settings above.")
+    '#description' => t("If this value checked module will replace system or theme breadcrumb render function by module's one.<br/>Note that if this checkbox is unchecked module will not be able to implement settings above.")
   );
 
   $form['path_breadcrumbs_home_link'] = array(
@@ -179,7 +179,7 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
 
   $form['path_breadcrumbs_home_link']['path_breadcrumbs_home_link_enabled'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Home link should be prepend to breadcrumbs navigation by default'),
+    '#title' => t('Prepend breadcrumbs with a home link by default'),
     '#default_value' => variable_get('path_breadcrumbs_home_link_enabled', 1),
     '#description' => t('This value does not changes current breadcrumbs navigation. It is just set default value for new path breadcrumbs.'),
   );
