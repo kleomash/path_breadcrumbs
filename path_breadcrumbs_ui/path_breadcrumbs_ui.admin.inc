@@ -280,6 +280,7 @@ function path_breadcrumbs_import_form_submit($form, &$form_state) {
 
   $path_breadcrumb = ctools_export_crud_import('path_breadcrumbs', $code);
 
+
   $result = db_merge('path_breadcrumbs')
     ->key(array(
       'machine_name' => $path_breadcrumb->machine_name

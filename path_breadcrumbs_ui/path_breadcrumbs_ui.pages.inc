@@ -13,8 +13,18 @@ function path_breadcrumbs_ui_configure_arguments_page($path_name, $keyword) {
   // Include ctools modal plugin.
   ctools_include('modal');
 
-  // Load argument settings form.
-  $form = drupal_get_form('path_breadcrumbs_ui_argument_context_form', $path_name, $keyword);
+  // Set form state values for context selections.
+  $form_state = array(
+    'storage' => array(
+      'path_name' => $path_name,
+      'keyword' => $keyword
+    )
+  );
+
+  // Load context selections form.
+  $form = drupal_build_form('path_breadcrumbs_ui_argument_context_form', $form_state);
+
+  // Wrap form into ctools modal.
   $commands = ctools_modal_form_render(array('title' => t('Choose argument')), $form);
   return array('#type' => 'ajax', '#commands' => $commands);
 }
@@ -95,13 +105,20 @@ function path_breadcrumbs_ui_edit_page($path_breadcrumb) {
     '#markup' => '<div id="path-breadcrumbs-ui-menu">' . theme('item_list', array('items' => $rendered_links)) . '</div>',
   );
 
-  $form = drupal_get_form('path_breadcrumbs_ui_edit_form', $path_breadcrumb, 1);
+  $form_state = array(
+    'storage' => array(
+      'machine_name' => $path_breadcrumb->machine_name,
+      'step' => 1,
+    )
+  );
+
+  $form = drupal_build_form('path_breadcrumbs_ui_edit_form', $form_state);
   $page['content']['edit_form'] = array(
     '#markup' => render($form),
   );
 
   drupal_add_library('system', 'drupal.ajax');
-  drupal_add_css(drupal_get_path('module', 'path_breadcrumbs_ui') . '/css/path_breadcrumbs_ui.css');
+  drupal_add_css(drupal_get_path('module', 'path_breadcrumbs_ui') . '/path_breadcrumbs_ui.css');
 
   return $page;
 }
@@ -111,8 +128,14 @@ function path_breadcrumbs_ui_edit_page($path_breadcrumb) {
  */
 function path_breadcrumbs_ui_edit_form_ajax_links($breadcrumb, $step) {
 
-  $form = drupal_get_form('path_breadcrumbs_ui_edit_form', $breadcrumb, $step);
+  $form_state = array(
+    'storage' => array(
+      'machine_name' => $breadcrumb->machine_name,
+      'step' => $step,
+    )
+  );
 
+  $form = drupal_build_form('path_breadcrumbs_ui_edit_form', $form_state);
   $commands = array();
   $commands[] = ajax_command_replace('#path-breadcrumbs-ui-form-wrapper', render($form));
   $commands[] = ajax_command_invoke('#path-breadcrumbs-ui-menu li a', 'removeClass', array('active'));

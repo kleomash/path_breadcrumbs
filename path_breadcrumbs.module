@@ -114,33 +114,40 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
     $breadcrumb[] = l(t($home), '<front>');
   }
 
-  // Replace placeholders by its value from url.
+  // Convert breadcrumb titles and paths to string.
+  $titles = implode("\n", $path_breadcrumb->titles);
+  $paths  = implode("\n", $path_breadcrumb->paths);
+
+  // Replace module placeholders.
   if (!empty($path_breadcrumb->arguments)) {
     $replace = array();
     $search = array();
+
+    // Replace placeholders by its value from url.
     foreach ($path_breadcrumb->arguments as $keyword => $argument) {
       $search[]  = '!' . $keyword;
       $replace[] = arg($argument['position']);
     }
 
-    // Add replace placeholder for current page title.
+    // Replace placeholder for current page title.
     $search[]  = '!page_title';
     $replace[] = drupal_get_title();
 
-    $path_breadcrumb->titles = str_replace($search, $replace, $path_breadcrumb->titles);
-    $path_breadcrumb->paths = str_replace($search, $replace, $path_breadcrumb->paths);
+    // Replace module placeholders.
+    $titles = str_replace($search, $replace, $titles);
+    $paths =  str_replace($search, $replace, $paths);
   }
 
   // Convert arguments from url to contexts.
   if (!empty($contexts)) {
     // Replace placeholders by current context values.
-    $path_breadcrumb->titles = ctools_context_keyword_substitute($path_breadcrumb->titles, array(), $contexts);
-    $path_breadcrumb->paths  = ctools_context_keyword_substitute($path_breadcrumb->paths, array(), $contexts);
+    $titles = ctools_context_keyword_substitute($titles, array(), $contexts);
+    $paths  = ctools_context_keyword_substitute($paths, array(), $contexts);
   }
 
   // Explode titles and paths into array.
-  $titles = explode("\n", $path_breadcrumb->titles);
-  $paths  = explode("\n", $path_breadcrumb->paths);
+  $titles = explode("\n", $titles);
+  $paths  = explode("\n", $paths);
 
   foreach ($titles as $key => $title) {
 
@@ -228,7 +235,7 @@ function path_breadcrumbs_breadcrumb($variables) {
       $elem_tag = 'div';
 
       // Add style that will display breadcrumbs wrapped in <div> inline.
-      drupal_add_css(drupal_get_path('module', 'path_breadcrumbs') . '/css/path_breadcrumbs.css');
+      drupal_add_css(drupal_get_path('module', 'path_breadcrumbs') . '/path_breadcrumbs.css');
     }
 
     foreach ($breadcrumbs as $key => $breadcrumb) {
@@ -299,32 +306,14 @@ function path_breadcrumbs_save($breadcrumb) {
     $breadcrumb->access = array();
   }
 
-  // Remove spaces and empty lines in breadcrumb titles.
-  $titles_output = array();
-  $titles = explode("\n", $breadcrumb->titles);
-  foreach ($titles as $title) {
-    if ($trimmed_title = trim($title)) {
-      $titles_output[] = $trimmed_title;
-    }
-  }
-
-  // Remove spaces and empty lines in breadcrumb paths.
-  $paths_output = array();
-  $paths = explode("\n", $breadcrumb->paths);
-  foreach ($paths as $path) {
-    if ($trimmed_path = trim($path)) {
-      $paths_output[] = $trimmed_path;
-    }
-  }
-
   // Build data to be inserted in database.
   $insert_data = array(
     'name'         => $breadcrumb->name,
     'machine_name' => $breadcrumb->machine_name,
     'path'         => $breadcrumb->path,
     'data'         => serialize(array(
-      'titles'        => implode("\n", $titles_output),
-      'paths'         => implode("\n", $paths_output),
+      'titles'        => $breadcrumb->titles,
+      'paths'         => $breadcrumb->paths,
       'home'          => $breadcrumb->home,
       'translatable'  => $breadcrumb->translatable,
       'arguments'     => $breadcrumb->arguments,

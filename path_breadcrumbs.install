@@ -160,7 +160,7 @@ function path_breadcrumbs_update_7200(&$sandbox) {
 }
 
 /**
- * Migrate variable for delimited to a new variable name storage.
+ * Migrate variables for delimiter and for rich snippert to a new variables name storage.
  */
 function path_breadcrumbs_update_7208() {
 
@@ -178,4 +178,22 @@ function path_breadcrumbs_update_7208() {
     variable_set('path_breadcrumbs_rich_snippets', PATH_BREADCRUMBS_RICH_SNIPPETS_DISABLED);
   }
   variable_del('path_breadcrumbs_rdfa_enabled');
+}
+
+/**
+ * Change storage behavior for path breadcrumbs data to prevent failures during export/import.
+ */
+function path_breadcrumbs_update_7213() {
+
+  $path_ids = db_select('path_breadcrumbs', 'p')
+    ->fields('p', array('path_id'))
+    ->execute();
+
+  // Update paths and titles.
+  foreach ($path_ids as $path) {
+    $breadcrumb = path_breadcrumbs_load($path->path_id);
+    $breadcrumb->titles = explode("\n", $breadcrumb->titles);
+    $breadcrumb->paths  = explode("\n", $breadcrumb->paths);
+    path_breadcrumbs_save($breadcrumb);
+  }
 }
