@@ -519,5 +519,5 @@ function path_breadcrumbs_object_cache_set($name, $data) {
  */
 function path_breadcrumbs_object_cache_clear($name) {
   ctools_include('object-cache');
-  ctools_object_cache_clear('path_breadcrumb', $name);
+  ctools_object_cache_clear('path_breadcrumbs', $name);
 }
