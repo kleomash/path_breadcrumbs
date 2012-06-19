@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Provide user interface for CRUD operations with path breadcrumbs.
+ */
+
+/**
  * Implements hook_menu().
  */
 function path_breadcrumbs_ui_menu() {

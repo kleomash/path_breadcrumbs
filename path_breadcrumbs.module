@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Provide core functions for path breadcrumbs modue.
+ */
+
+/**
  * Define module constants.
  */
 define('PATH_BREADCRUMBS_RICH_SNIPPETS_DISABLED', 0);

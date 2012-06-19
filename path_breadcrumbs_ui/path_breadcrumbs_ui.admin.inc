@@ -225,7 +225,7 @@ function path_breadcrumbs_clone_breadcrumb($path_breadcrumb) {
  */
 function path_breadcrumbs_export_form($form, $form_state, $path_breadcrumb) {
 
-  drupal_set_title(t('Export path breadcrumb "!name"', array('!name' => $path_breadcrumb->name)));
+  drupal_set_title(filter_xss(t('Export path breadcrumb "!name"', array('!name' => $path_breadcrumb->name))));
 
   ctools_include('export');
   $objects = ctools_export_load_object('path_breadcrumbs', 'all', array($path_breadcrumb->path_id));

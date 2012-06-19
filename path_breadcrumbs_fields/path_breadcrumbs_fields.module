@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Provide additional tokens for fields.
+ */
+
+/**
  * Implements hook_token_info().
  */
 function path_breadcrumbs_token_info() {
