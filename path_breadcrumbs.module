@@ -111,7 +111,7 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
   // Prepend HOME link to breadcrumbs navigation.
   if ($path_breadcrumb->home == TRUE) {
     $home = variable_get('path_breadcrumbs_home_link_title', 'Home');
-    $breadcrumb[] = l(t($home), '<front>', array('absolute' => TRUE));
+    $breadcrumb[] = l(t($home), '<front>');
   }
 
   // Replace placeholders by its value from url.
@@ -157,7 +157,7 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
 
     // Set a breadcrumb as a link or as a plain text.
     if (isset($paths[$key]) && $paths[$key] != '<none>') {
-      $breadcrumb[] = l($title, $paths[$key], array('absolute' => TRUE));
+      $breadcrumb[] = l($title, $paths[$key]);
     }
     elseif (isset($paths[$key]) && $paths[$key] == '<none>') {
       $breadcrumb[] = check_plain($title);
@@ -243,27 +243,35 @@ function path_breadcrumbs_breadcrumb($variables) {
         $classes[] = 'last';
       }
 
-      if ($snippet != PATH_BREADCRUMBS_RICH_SNIPPETS_DISABLED) {
-        // For rich snippets support all links should be processed in the same way,
-        // even if they are provided not by Path Breadcrumbs module. So I have to
-        // parse html code and create links again with new properties.
-        preg_match('/href="([^"]+?)"/', $breadcrumb, $matches);
-        $href = !empty($matches[1]) ? $matches[1] : '';
-        $title = strip_tags($breadcrumb);
+      // For rich snippets support all links should be processed in the same way,
+      // even if they are provided not by Path Breadcrumbs module. So I have to
+      // parse html code and create links again with new properties.
+      preg_match('/href="([^"]+?)"/', $breadcrumb, $matches);
 
-        // Wrap title in additional element for microdata support.
-        if ($snippet == PATH_BREADCRUMBS_RICH_SNIPPETS_MICRODATA) {
-          $title = '<span itemprop="title">' . $title . '</span>';
+      // Remove base path from href.
+      $href = '';
+      if (!empty($matches[1])) {
+        global $base_path;
+        if (stripos($matches[1], $base_path) === 0) {
+          $href = drupal_substr($matches[1], drupal_strlen($base_path));
         }
-
-        // Build new text or link breadcrumb.
-        $new_breadcrumb = $href ? l($title, $href, $options) : $title;
-      }
-      else {
-        // If no rich snippets support do not process breadcrumb.
-        $new_breadcrumb = $breadcrumb;
+        else {
+          $href = $matches[1];
+        }
+        $href = empty($href) ? '<front>' : $href;
       }
 
+      $title = strip_tags($breadcrumb);
+
+      // Wrap title in additional element for microdata support.
+      if ($snippet == PATH_BREADCRUMBS_RICH_SNIPPETS_MICRODATA) {
+        $title = '<span itemprop="title">' . $title . '</span>';
+      }
+
+      // Build new text or link breadcrumb.
+      $new_breadcrumb = !empty($href) ? l($title, $href, $options) : $title;
+
+      // Replace old breadcrumb link with a new one.
       $breadcrumbs[$key] = '<' . $elem_tag . ' class="' . implode(' ', $classes) . '" ' . $elem_property . '>' . $new_breadcrumb . '</' . $elem_tag . '>';
     }
 
