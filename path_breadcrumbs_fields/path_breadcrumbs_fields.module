@@ -8,7 +8,7 @@
 /**
  * Implements hook_token_info().
  */
-function path_breadcrumbs_token_info() {
+function path_breadcrumbs_fields_token_info() {
   $info = array();
 
   // Get info about all fields.
