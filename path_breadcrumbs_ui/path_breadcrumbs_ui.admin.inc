@@ -66,7 +66,7 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
     $form[$path->path_id]['weight'] = array(
       '#type' => 'weight',
       '#default_value' => $path->weight,
-      '#delta' => 30,
+      '#delta' => 100,
       '#attributes' => array('class' => array('path-breadcrumbs-ui-table-weight')),
     );
 
