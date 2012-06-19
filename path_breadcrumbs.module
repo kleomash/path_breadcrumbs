@@ -111,7 +111,7 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
   // Prepend HOME link to breadcrumbs navigation.
   if ($path_breadcrumb->home == TRUE) {
     $home = variable_get('path_breadcrumbs_home_link_title', 'Home');
-    $breadcrumb[] = l(t($home), '<front>');
+    $breadcrumb[] = l(t($home), '<front>', array('absolute' => TRUE));
   }
 
   // Replace placeholders by its value from url.
@@ -157,7 +157,7 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
 
     // Set a breadcrumb as a link or as a plain text.
     if (isset($paths[$key]) && $paths[$key] != '<none>') {
-      $breadcrumb[] = l($title, $paths[$key]);
+      $breadcrumb[] = l($title, $paths[$key], array('absolute' => TRUE));
     }
     elseif (isset($paths[$key]) && $paths[$key] == '<none>') {
       $breadcrumb[] = check_plain($title);
