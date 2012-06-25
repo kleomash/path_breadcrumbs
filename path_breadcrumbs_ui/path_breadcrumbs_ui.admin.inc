@@ -11,20 +11,22 @@
 function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
 
   // Load path breadcrumbs.
-  $result = db_select('path_breadcrumbs', 'p')
-    ->fields('p', array('path_id', 'name', 'path', 'machine_name', 'weight', 'disabled'))
-    ->orderBy('p.disabled')
-    ->orderBy('p.weight')
-    ->execute();
+  $result = path_breadcrumbs_load_all();
 
+  // NOTE: Is it too heavy?
+  $form_state['storage']['objects'] = $result;
   $form['#tree'] = TRUE;
 
   foreach ($result as $path) {
-    $form[$path->path_id]['title']['#markup'] = $path->name;
-    $form[$path->path_id]['name']['#markup'] = $path->machine_name;
-    $form[$path->path_id]['path']['#markup'] = $path->path;
-    // All paths are in $form_state['paths'].
-    $form[$path->path_id]['#parents'] = array('paths', $path->path_id);
+    $form[$path->machine_name]['title']['#markup'] = $path->name;
+    // If object is overwritten.
+    if ($path->is_overwritten) {
+      $form[$path->machine_name]['title']['#markup'] .= '<sup>'. $path->type .'</sup>';
+    }
+    $form[$path->machine_name]['name']['#markup'] = $path->machine_name;
+    $form[$path->machine_name]['path']['#markup'] = $path->path;
+    // All paths are in $form_state['values']['paths'].
+    $form[$path->machine_name]['#parents'] = array('paths', $path->machine_name);
 
     // Create operations for current breadcrumb.
     $operations = array();
@@ -32,45 +34,47 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
     if ($path->disabled == TRUE) {
       $operations[] = array(
         'title' => t('Enable'),
-        'href' => 'admin/structure/path-breadcrumbs/enable/' . $path->path_id,
+        'href' => 'admin/structure/path-breadcrumbs/enable/' . $path->machine_name,
       );
     }
 
     $operations[] = array(
       'title' => t('Edit'),
-      'href' => 'admin/structure/path-breadcrumbs/edit/' . $path->path_id,
+      'href' => 'admin/structure/path-breadcrumbs/edit/' . $path->machine_name,
     );
     $operations[] = array(
       'title' => t('Clone'),
-      'href' => 'admin/structure/path-breadcrumbs/clone/' . $path->path_id,
+      'href' => 'admin/structure/path-breadcrumbs/clone/' . $path->machine_name,
     );
     $operations[] = array(
       'title' => t('Export'),
-      'href' => 'admin/structure/path-breadcrumbs/export/' . $path->path_id,
+      'href' => 'admin/structure/path-breadcrumbs/export/' . $path->machine_name,
     );
-    $operations[] = array(
-      'title' => t('Delete'),
-      'href' => 'admin/structure/path-breadcrumbs/delete/' . $path->path_id,
-    );
+    if (empty($path->in_code_only)) {
+      $operations[] = array(
+        'title' => $path->is_overwritten ? t('Revert') : t('Delete'),
+        'href' => 'admin/structure/path-breadcrumbs/delete/' . $path->machine_name,
+      );
+    }
 
     if ($path->disabled == FALSE) {
       $operations[] = array(
         'title' => t('Disable'),
-        'href' => 'admin/structure/path-breadcrumbs/disable/' . $path->path_id,
+        'href' => 'admin/structure/path-breadcrumbs/disable/' . $path->machine_name,
       );
     }
 
-    $form[$path->path_id]['actions']['#markup'] = theme('links__ctools_dropbutton',
+    $form[$path->machine_name]['actions']['#markup'] = theme('links__ctools_dropbutton',
       array('links' => $operations, 'attributes' => array('class' => array('links', 'inline'))));
 
-    $form[$path->path_id]['weight'] = array(
+    $form[$path->machine_name]['weight'] = array(
       '#type' => 'weight',
       '#default_value' => $path->weight,
       '#delta' => 100,
       '#attributes' => array('class' => array('path-breadcrumbs-ui-table-weight')),
     );
 
-    $form[$path->path_id]['disabled'] = array(
+    $form[$path->machine_name]['disabled'] = array(
       '#type' => 'value',
       '#value' => $path->disabled,
     );
@@ -85,7 +89,7 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
     '#value' => t('Save'),
   );
 
-  $form['#attached']['css'][] = drupal_get_path('module', 'path_breadcrumbs_ui') . '/css/path_breadcrumbs_ui.css';
+  $form['#attached']['css'][] = drupal_get_path('module', 'path_breadcrumbs_ui') . '/path_breadcrumbs_ui.css';
 
   return $form;
 }
@@ -95,14 +99,11 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
  */
 function path_breadcrumbs_ui_breadcrumbs_list_submit($form, &$form_state) {
   if (!empty($form_state['values']['paths'])) {
-    foreach ($form_state['values']['paths'] as $path_id => $value) {
+    foreach ($form_state['values']['paths'] as $machine_name => $value) {
       if (isset($value['weight'])) {
-        db_update('path_breadcrumbs')
-          ->fields(array(
-          'weight' => $value['weight'],
-        ))
-          ->condition('path_id', $path_id)
-          ->execute();
+        $path_breadcrumbs = $form_state['storage']['objects'][$machine_name];
+        $path_breadcrumbs->weight = $value['weight'];
+        path_breadcrumbs_save($path_breadcrumbs);
       }
     }
   }
@@ -214,6 +215,7 @@ function path_breadcrumbs_ui_settings_submit($form, &$form_state) {
  */
 function path_breadcrumbs_clone_breadcrumb($path_breadcrumb) {
   $path_breadcrumb->machine_name .= '_clone';
+  $path_breadcrumb->export_type = NULL;
   unset($path_breadcrumb->path_id);
   path_breadcrumbs_object_cache_set($path_breadcrumb->machine_name, $path_breadcrumb);
   $form_state = array('storage' => array('machine_name' => $path_breadcrumb->machine_name));
@@ -223,19 +225,13 @@ function path_breadcrumbs_clone_breadcrumb($path_breadcrumb) {
 /**
  * Form for object export.
  */
-function path_breadcrumbs_export_form($form, $form_state, $path_breadcrumb) {
+function path_breadcrumbs_export_form($form, $form_state, $path_breadcrumbs) {
 
-  drupal_set_title(filter_xss(t('Export path breadcrumb "!name"', array('!name' => $path_breadcrumb->name))));
+  drupal_set_title(t('Export path breadcrumb "!name"', array('!name' => $path_breadcrumbs->name)));
 
   ctools_include('export');
-  $objects = ctools_export_load_object('path_breadcrumbs', 'all', array($path_breadcrumb->path_id));
 
-  if (empty($objects[$path_breadcrumb->path_id])) {
-    return t('It is not possible to export path breadcrumb right now. May be you need to flush site cache.');
-  }
-
-  $object = $objects[$path_breadcrumb->path_id];
-  $code = ctools_export_crud_export('path_breadcrumbs', $object);
+  $code = ctools_export_crud_export('path_breadcrumbs', $path_breadcrumbs);
   $lines = substr_count($code, "\n");
 
   $form['export'] = array(
@@ -278,30 +274,30 @@ function path_breadcrumbs_import_form_submit($form, &$form_state) {
   $code = $form_state['values']['import'];
   ctools_include('export');
 
-  $path_breadcrumb = ctools_export_crud_import('path_breadcrumbs', $code);
-
-
-  $result = db_merge('path_breadcrumbs')
-    ->key(array(
-      'machine_name' => $path_breadcrumb->machine_name
-    ))
-    ->fields(array(
-      'name' => $path_breadcrumb->name,
-      'path' => $path_breadcrumb->path,
-      'data' => $path_breadcrumb->data,
-      'weight' => $path_breadcrumb->weight,
-      'disabled' => $path_breadcrumb->disabled,
-    ))
-    ->execute();
-
-  if ($result == 1) {
-    drupal_set_message(filter_xss(t('Path breadcrumb "!name" was successfully imported.', array('!name' => $path_breadcrumb->name))));
+  $path_breadcrumbs_raw = ctools_export_crud_import('path_breadcrumbs', $code);
+  if (is_string($path_breadcrumbs_raw)) {
+    form_error($form['import'], t('Unable to get an import from the code. Errors reported: @errors', array('@errors' => $path_breadcrumbs_raw)));
+    $form_state['rebuild'] = TRUE;
+    return;
   }
-  elseif ($result == 2) {
-    drupal_set_message(filter_xss(t('Path breadcrumb "!name" was successfully updated.', array('!name' => $path_breadcrumb->name))));
+  // Because we get raw object from Ctools we should prepare it before saving.
+  $path_breadcrumbs = path_breadcrumbs_load_prepare($path_breadcrumbs_raw);
+  $path_breadcrumbs_original = path_breadcrumbs_load_by_name($path_breadcrumbs->machine_name);
+  // If there is path breadcrumbs object with the same machine name,
+  // delete the original so that this one writes properly.
+  if (!empty($path_breadcrumbs_original)) {
+    path_breadcrumbs_delete($path_breadcrumbs_original->machine_name);
+  }
+  if (path_breadcrumbs_save($path_breadcrumbs)) {
+    if (!empty($path_breadcrumbs_original)) {
+      drupal_set_message(t('Path breadcrumb "!name" was successfully updated.', array('!name' => filter_xss($path_breadcrumbs->name))));
+    }
+    else {
+      drupal_set_message(t('Path breadcrumb "!name" was successfully imported.', array('!name' => filter_xss($path_breadcrumbs->name))));
+    }
   }
   else {
-    drupal_set_message(t('Could not import path breadcrumb.', 'error'));
+    form_error($form['import'], t('Could not import path breadcrumb.'));
   }
 
   $form_state['redirect'] = 'admin/structure/path-breadcrumbs';

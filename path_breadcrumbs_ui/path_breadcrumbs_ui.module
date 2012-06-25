@@ -12,6 +12,7 @@ function path_breadcrumbs_ui_menu() {
 
   $items['admin/structure/path-breadcrumbs'] = array(
     'title' => 'Path breadcrumbs',
+    'description' => 'Manage breadcrumbs for your site\'s pages.',
     'access arguments' => array('administer path breadcrumbs'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('path_breadcrumbs_ui_breadcrumbs_list'),
@@ -43,7 +44,7 @@ function path_breadcrumbs_ui_menu() {
     'type' => MENU_LOCAL_ACTION,
   );
 
-  $items['admin/structure/path-breadcrumbs/clone/%path_breadcrumbs'] = array(
+  $items['admin/structure/path-breadcrumbs/clone/%path_breadcrumbs_ui_cache'] = array(
     'title' => 'Clone path breadcrumb',
     'page callback' => 'path_breadcrumbs_clone_breadcrumb',
     'page arguments' => array(4),
@@ -51,7 +52,7 @@ function path_breadcrumbs_ui_menu() {
     'file' => 'path_breadcrumbs_ui.admin.inc',
   );
 
-  $items['admin/structure/path-breadcrumbs/export/%path_breadcrumbs'] = array(
+  $items['admin/structure/path-breadcrumbs/export/%path_breadcrumbs_ui_cache'] = array(
     'title' => 'Export path breadcrumb',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('path_breadcrumbs_export_form', 4),
@@ -68,7 +69,7 @@ function path_breadcrumbs_ui_menu() {
     'type' => MENU_LOCAL_ACTION,
   );
 
-  $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs'] = array(
+  $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs_ui_cache'] = array(
     'title' => 'Edit path breadcrumbs',
     'page callback' => 'path_breadcrumbs_ui_edit_page',
     'page arguments' => array(4),
@@ -76,7 +77,7 @@ function path_breadcrumbs_ui_menu() {
     'file' => 'path_breadcrumbs_ui.pages.inc',
   );
 
-  $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs/ajax/%'] = array(
+  $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs_ui_cache/ajax/%'] = array(
     'page callback' => 'path_breadcrumbs_ui_edit_form_ajax_links',
     'page arguments' => array(4, 6),
     'access arguments' => array('administer path breadcrumbs'),
@@ -86,14 +87,14 @@ function path_breadcrumbs_ui_menu() {
     'file' => 'path_breadcrumbs_ui.pages.inc',
   );
 
-  $items['admin/structure/path-breadcrumbs/delete/%path_breadcrumbs'] = array(
+  $items['admin/structure/path-breadcrumbs/delete/%path_breadcrumbs_ui_cache'] = array(
     'title' => 'Delete path breadcrumbs',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('path_breadcrumbs_ui_delete_form', 4),
     'access arguments' => array('administer path breadcrumbs'),
   );
 
-  $items['admin/structure/path-breadcrumbs/disable/%path_breadcrumbs'] = array(
+  $items['admin/structure/path-breadcrumbs/disable/%path_breadcrumbs_ui_cache'] = array(
     'title' => 'Disable path breadcrumbs',
     'page callback' => 'path_breadcrumbs_ui_disable_breadcrumbs_page',
     'page arguments' => array(4),
@@ -102,7 +103,7 @@ function path_breadcrumbs_ui_menu() {
     'file' => 'path_breadcrumbs_ui.pages.inc',
   );
 
-  $items['admin/structure/path-breadcrumbs/enable/%path_breadcrumbs'] = array(
+  $items['admin/structure/path-breadcrumbs/enable/%path_breadcrumbs_ui_cache'] = array(
     'title' => 'Enable path breadcrumbs',
     'page callback' => 'path_breadcrumbs_ui_enable_breadcrumbs_page',
     'page arguments' => array(4),
@@ -1208,7 +1209,7 @@ function path_breadcrumbs_ui_edit_form_ajax_callback($form, $form_state) {
 }
 
 /**
- * Form for deletion path breadcrumbs from database.
+ * Form for deletion or revert path breadcrumbs from database.
  *
  * @param $form
  * @param $form_state
@@ -1218,14 +1219,21 @@ function path_breadcrumbs_ui_edit_form_ajax_callback($form, $form_state) {
  */
 function path_breadcrumbs_ui_delete_form($form, $form_state, $path_breadcrumbs) {
 
-  $form['path_id'] = array(
+  $form['machine_name'] = array(
     '#type' => 'value',
-    '#value' => $path_breadcrumbs->path_id,
+    '#value' => $path_breadcrumbs->machine_name,
   );
 
-  $form['message'] = array(
-    '#markup' => t('Are you sure that you want to delete %name from database?', array('%name' => $path_breadcrumbs->name))
-  );
+  if ($path_breadcrumbs->is_overwritten) {
+    $form['message'] = array(
+      '#markup' => t('Are you sure that you want to revert %name from database?', array('%name' => $path_breadcrumbs->name))
+    );
+  }
+  else {
+    $form['message'] = array(
+      '#markup' => t('Are you sure that you want to delete %name from database?', array('%name' => $path_breadcrumbs->name))
+    );
+  }
 
   $form['actions'] = array(
     '#type' => 'actions'
@@ -1233,7 +1241,7 @@ function path_breadcrumbs_ui_delete_form($form, $form_state, $path_breadcrumbs) 
 
   $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Delete'),
+    '#value' => $path_breadcrumbs->is_overwritten ? t('Revert') : t('Delete'),
   );
 
   $form['actions']['cancel'] = array(
@@ -1256,10 +1264,31 @@ function path_breadcrumbs_ui_delete_form_submit($form, &$form_state) {
 
   // Delete breadcrumb.
   if ($values['op'] == $values['submit']) {
-    path_breadcrumbs_delete($values['path_id']);
+    path_breadcrumbs_delete($values['machine_name']);
     drupal_set_message(t('Path breadcrumb was successfully deleted.'));
   }
 
   // Redirect to the settings page.
   $form_state['redirect'] = 'admin/structure/path-breadcrumbs';
+}
+
+/**
+ * Load path_breadcrumbs object for UI editing.
+ *
+ * @param $machine_name
+ * @return bool|object
+ */
+function path_breadcrumbs_ui_cache_load($machine_name) {
+  $path_breadcrumbs = path_breadcrumbs_object_cache_get($machine_name);
+
+  if (empty($path_breadcrumbs)) {
+    // If there is no cache load original object.
+    $path_breadcrumbs = path_breadcrumbs_load_by_name($machine_name);
+  }
+
+  if (empty($path_breadcrumbs)) {
+    return FALSE;
+  }
+
+  return $path_breadcrumbs;
 }

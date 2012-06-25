@@ -15,7 +15,7 @@ define('PATH_BREADCRUMBS_RICH_SNIPPETS_MICRODATA', 2);
 /**
  * Implements hook_page_alter().
  */
-function path_breadcrumbs_page_alter(&$page) {
+function path_breadcrumbs_page_alter() {
   // See if current page has path breadcrumbs.
   $breadcrumbs = path_breadcrumbs_load_variant(current_path());
 
@@ -40,43 +40,23 @@ function path_breadcrumbs_load_variant($path) {
     return FALSE;
   }
 
-  // Create sql pattern from url.
-  $path_vars = explode('/', $path);
-  if ($args_count = (sizeof($path_vars) - 1)) {
-    $sql_path = array_fill(0, $args_count, '%');
-    array_unshift($sql_path, $path_vars[0]);
-    $sql_replacements = implode('/', $sql_path);
-  }
-  else {
-    $sql_replacements = $path;
-  }
-
   // Select all variants matching current path.
-  $variants = db_select('path_breadcrumbs', 'p')
-    ->fields('p',  array('path_id', 'path'))
-    ->condition('p.path', $sql_replacements, 'LIKE')
-    ->condition('p.disabled', 0)
-    ->orderBy('p.weight')
-    ->execute();
+  $variants = path_breadcrumbs_load_by_path($path);
 
   // Check if current path maches variant.
   // When first variant is found - return it.
-  foreach ($variants as $variant) {
-    $matched_path = array();
-    $arguments    = explode('/', $variant->path);
-    foreach ($arguments as $argument) {
-      if ($argument[0] == '%') {
-        $matched_path[] = '*';
-      }
-      else {
-        $matched_path[] = $argument;
-      }
-    }
-    $matched_path = implode('/', $matched_path);
+  foreach ($variants as $breadcrumb) {
+
+    // Replace placeholder in path with '*'.
+    // Example: 'node/%node/view' -> 'node/*/view'.
+    $matched_path = preg_replace("
+        /\/%    # start with slash-percent
+        [^\/]+  # all symbols except for the slash
+        /x", '/*', $breadcrumb->path);
+
     if (drupal_match_path($path, $matched_path)) {
 
-      // Load breadcrumbs and it's contexts from current path.
-      $breadcrumb = path_breadcrumbs_load($variant->path_id);
+      // Load breadcrumbs' contexts from current path.
       $contexts = path_breadcrumbs_get_contexts_from_arguments($breadcrumb->arguments);
 
       // If breadcrumb contains broken context
@@ -85,7 +65,7 @@ function path_breadcrumbs_load_variant($path) {
         continue;
       }
 
-      // Check if breadcrumb is accessible.
+      // Check if breadcrumb is accessable.
       if (!empty($breadcrumb->access)) {
         $access = ctools_access($breadcrumb->access, $contexts);
         if (!$access) {
@@ -128,24 +108,25 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
   $paths  = implode("\n", $path_breadcrumb->paths);
 
   // Replace module placeholders.
-  if (!empty($path_breadcrumb->arguments)) {
-    $replace = array();
-    $search = array();
+  $replace = array();
+  $search = array();
 
-    // Replace placeholders by its value from url.
+  // Replace placeholders by its value from url.
+  if (!empty($path_breadcrumb->arguments)) {
     foreach ($path_breadcrumb->arguments as $keyword => $argument) {
       $search[]  = '!' . $keyword;
       $replace[] = arg($argument['position']);
     }
-
-    // Replace placeholder for current page title.
-    $search[]  = '!page_title';
-    $replace[] = drupal_get_title();
-
-    // Replace module placeholders.
-    $titles = str_replace($search, $replace, $titles);
-    $paths =  str_replace($search, $replace, $paths);
   }
+
+  // Replace placeholder for current page title.
+  $search[]  = '!page_title';
+  $replace[] = drupal_get_title();
+
+  // Replace module placeholders.
+  $titles = str_replace($search, $replace, $titles);
+  $paths =  str_replace($search, $replace, $paths);
+
 
   // Convert arguments from url to contexts.
   if (!empty($contexts)) {
@@ -205,8 +186,8 @@ function path_breadcrumbs_theme_registry_alter(&$theme_registry) {
  *
  * @param $variables
  *   Contains array with breadcrumbs.
- * @return string
- *   Rendered breadcrumbs.
+ * @return bool|string
+ *   Rendered breadcrumbs or FALSE for no breadcrumbs.
  */
 function path_breadcrumbs_breadcrumb($variables) {
   $breadcrumbs = $variables['breadcrumb'];
@@ -298,97 +279,88 @@ function path_breadcrumbs_breadcrumb($variables) {
     $output .= '<div class="breadcrumb"' . $root_property . '>' . implode(' ' . trim($delimiter) . ' ', $breadcrumbs) . '</div>';
     return $output;
   }
+
+  // Return false if no breadcrumbs.
+  return FALSE;
 }
 
 /**
  * Save path breadcrumb.
  *
- * @param  $breadcrumb
+ * @param  $path_breadcrumbs
  *   Object with path breadcrumb data.
  * @return int
  *   ID of inserted/updated path breadcrumb.
  */
-function path_breadcrumbs_save($breadcrumb) {
-
+function path_breadcrumbs_save($path_breadcrumbs) {
+  ctools_include('export');
   // Build array with full access data.
-  if (!empty($breadcrumb->access) && !empty($breadcrumb->logic)) {
-    $breadcrumb->access['logic'] = $breadcrumb->logic;
+  if (!empty($path_breadcrumbs->access) && !empty($path_breadcrumbs->logic)) {
+    $path_breadcrumbs->access['logic'] = $path_breadcrumbs->logic;
   }
-  elseif (empty($breadcrumb->access)) {
-    $breadcrumb->access = array();
+  elseif (empty($path_breadcrumbs->access)) {
+    $path_breadcrumbs->access = array();
   }
 
-  // Build data to be inserted in database.
-  $insert_data = array(
-    'name'         => $breadcrumb->name,
-    'machine_name' => $breadcrumb->machine_name,
-    'path'         => $breadcrumb->path,
-    'data'         => serialize(array(
-      'titles'        => $breadcrumb->titles,
-      'paths'         => $breadcrumb->paths,
-      'home'          => $breadcrumb->home,
-      'translatable'  => $breadcrumb->translatable,
-      'arguments'     => $breadcrumb->arguments,
-      'access'        => $breadcrumb->access,
-    )),
+  // Ctools will serialize data itself.
+  $path_breadcrumbs->data = array(
+    'titles'        => $path_breadcrumbs->titles,
+    'paths'         => $path_breadcrumbs->paths,
+    'home'          => $path_breadcrumbs->home,
+    'translatable'  => $path_breadcrumbs->translatable,
+    'arguments'     => $path_breadcrumbs->arguments,
+    'access'        => $path_breadcrumbs->access,
   );
 
-  if (!empty($breadcrumb->path_id)) {
-    // Update path breadcrumbs.
-    db_update('path_breadcrumbs')
-      ->fields($insert_data)
-      ->condition('path_id', $breadcrumb->path_id)
-      ->execute();
+  $save_result = ctools_export_crud_save('path_breadcrumbs', $path_breadcrumbs);
+
+  // FALSE means error while saving.
+  if ($save_result) {
+    // Remove data from ctools object cache table.
+    path_breadcrumbs_object_cache_clear($path_breadcrumbs->machine_name);
+
+    // Allow modules to know that path_breadcrumbs were saved.
+    $path_breadcrumbs->is_new = ($save_result == SAVED_NEW);
+    module_invoke_all('path_breadcrumbs_save', $path_breadcrumbs);
+    cache_clear_all('path_breadcrumbs', 'cache', TRUE);
   }
-  else {
-    // Create new path breadcrumbs.
-    $breadcrumb->is_new = TRUE;
-    $breadcrumb->path_id = db_insert('path_breadcrumbs')
-      ->fields($insert_data)
-      ->execute();
-  }
-
-  // Remove data from ctools object cache table.
-  path_breadcrumbs_object_cache_clear($breadcrumb->machine_name);
-
-  // Allow modules to know that path_breadcrumbs were saved.
-  $breadcrumb->is_new = empty($breadcrumb->is_new) ? FALSE : TRUE;
-  module_invoke_all('path_breadcrumbs_save', $breadcrumb);
-
-  // Return path breadcrumb ID.
-  return $breadcrumb->path_id;
+  // Return saving result, SAVED_NEW or SAVED_UPDATED.
+  return $save_result;
 }
 
 /**
  * Delete path breadcrumb.
  *
- * @param  $path_breadcrumb
- *   Path breadcrumb ID or Object to delete.
- * @return bool
- *   Result of path breadcrumb deletion.
+ * @param  $name
+ *   Path breadcrumb's name.
+ * @return void
  */
-function path_breadcrumbs_delete($path_breadcrumb) {
+function path_breadcrumbs_delete($name) {
+  $path_breadcrumbs = path_breadcrumbs_load_by_name($name);
 
-  if (ctype_digit($path_breadcrumb)) {
-    $path_id = $path_breadcrumb;
-    $path_breadcrumb = path_breadcrumbs_load($path_id);
-  }
-  elseif (is_object($path_breadcrumb)) {
-    $path_id = $path_breadcrumb->path_id;
-  }
-  else {
-    return FALSE;
-  }
+  // Inform modules about deleting path_breadcrumbs.
+  module_invoke_all('path_breadcrumbs_delete', $path_breadcrumbs);
 
-  // Inform modules about deleting path_breadcrumbs
-  module_invoke_all('path_breadcrumbs_delete', $path_breadcrumb);
+  // Call ctools functions to remove object correctly.
+  ctools_export_crud_delete('path_breadcrumbs', $path_breadcrumbs);
+  cache_clear_all('path_breadcrumbs', 'cache', TRUE);
+}
 
-  // Delete path breadcrumbs from database.
-  $result = db_delete('path_breadcrumbs')
-    ->condition('path_id', $path_id)
-    ->execute();
+/**
+ * Prepare raw object from Ctools to normal path_breadcrumbs object
+ *
+ * @param $path_breadcrumbs_raw
+ *    Object loaded from database or ctools_export_load_object().
+ * @return object $path_breadcrumbs.
+ */
+function path_breadcrumbs_load_prepare($path_breadcrumbs_raw) {
+  // Merge breadcrumb data with parent for more flattening structure.
+  $path_breadcrumbs = (object) array_merge((array) $path_breadcrumbs_raw, $path_breadcrumbs_raw->data);
+  $path_breadcrumbs->disabled = isset($path_breadcrumbs->disabled) ? $path_breadcrumbs->disabled : FALSE;
+  $path_breadcrumbs->is_overwritten = ($path_breadcrumbs->export_type == (EXPORT_IN_DATABASE | EXPORT_IN_CODE));
+  unset($path_breadcrumbs->data);
 
-  return $result;
+  return $path_breadcrumbs;
 }
 
 /**
@@ -400,28 +372,21 @@ function path_breadcrumbs_delete($path_breadcrumb) {
  *   Loaded path breadcrumb
  */
 function path_breadcrumbs_load($path_id) {
-  static $paths;
+  // Cache it because Ctools cache is not helpful for 'conditions' loading.
+  $paths = &drupal_static(__FUNCTION__);
 
-  // See if current breadcrumb already was loaded.
   if (!isset($paths[$path_id])) {
-
-    // Load breadcrumb from database.
-    $breadcrumb = db_select('path_breadcrumbs', 'p')
-      ->fields('p')
-      ->condition('p.path_id', $path_id)
-      ->execute()
-      ->fetchObject();
-
-    if ($breadcrumb) {
+    ctools_include('export');
+    $result = ctools_export_load_object('path_breadcrumbs', 'conditions', array('path_id' => $path_id));
+    $path_breadcrumbs = reset($result);
+    if (!empty($path_breadcrumbs)) {
       // Merge breadcrumb data with parent for more flattening structure.
-      $breadcrumb->data = unserialize($breadcrumb->data);
-      $breadcrumb = (object) array_merge((array) $breadcrumb, $breadcrumb->data);
-      unset($breadcrumb->data);
+      $path_breadcrumbs = path_breadcrumbs_load_prepare($path_breadcrumbs);
+      $paths[$path_id] = $path_breadcrumbs;
     }
-    $paths[$path_id] = $breadcrumb;
   }
 
-  return $paths[$path_id];
+  return isset($paths[$path_id]) ? $paths[$path_id] : FALSE;
 }
 
 /**
@@ -433,36 +398,100 @@ function path_breadcrumbs_load($path_id) {
  *   Object with path breadcrumb.
  */
 function path_breadcrumbs_load_by_name($name) {
-  static $paths;
+  ctools_include('export');
+  $result = ctools_export_load_object('path_breadcrumbs', 'names', array($name));
 
-  // See if current breadcrumb already was loaded.
-  if (!isset($paths[$name])) {
-
-    // Load breadcrumb from database.
-    $breadcrumb = db_select('path_breadcrumbs', 'p')
-      ->fields('p')
-      ->condition('p.machine_name', $name)
-      ->execute()
-      ->fetchObject();
-
-    if ($breadcrumb) {
-      // Merge breadcrumb data with parent for more flattening structure.
-      $breadcrumb->data = unserialize($breadcrumb->data);
-      $breadcrumb = (object) array_merge((array) $breadcrumb, $breadcrumb->data);
-      unset($breadcrumb->data);
-    }
-    $paths[$name] = $breadcrumb;
+  if (!empty($result[$name])) {
+    $path_breadcrumbs = $result[$name];
+    // Merge breadcrumb data with parent for more flattening structure.
+    $path_breadcrumbs = path_breadcrumbs_load_prepare($path_breadcrumbs);
   }
 
-  return $paths[$name];
+  return isset($path_breadcrumbs) ? $path_breadcrumbs : FALSE;
+}
+
+/**
+ * Load multiple objects by names.
+ *
+ * @param $names
+ * @return array
+ */
+function path_breadcrumbs_load_by_name_multiple($names) {
+  ctools_include('export');
+  $result = ctools_export_load_object('path_breadcrumbs', 'names', $names);
+
+  // Merge breadcrumb data with parent for more flattening structure.
+  foreach ($result as $name => $path_breadcrumbs) {
+    $result[$name] = path_breadcrumbs_load_prepare($path_breadcrumbs);
+  }
+
+  return $result;
+}
+
+/**
+ * Load all path breadcrumbs from database and code.
+ *
+ * @return array
+ *    Array of path_breadcrumbs objects.
+ */
+function path_breadcrumbs_load_all() {
+  $data = &drupal_static(__FUNCTION__);
+  if (empty($data)) {
+    ctools_include('export');
+    $data = ctools_export_load_object('path_breadcrumbs', 'all');
+    // Make objects more developer-friendly.
+    $data = array_map('path_breadcrumbs_load_prepare', $data);
+    // Order by weight.
+    uasort($data, '_path_breadcrumbs_sort_weight');
+  }
+  return $data;
+}
+
+/**
+ * Load enabled path_breadcrumbs by path.
+ *
+ * @param string $path
+ * @return array
+ *    Array of path_breadcrumbs sorted by weight.
+ */
+function path_breadcrumbs_load_by_path($path) {
+  $data = &drupal_static(__FUNCTION__);
+  $pattern_needle = path_breadcrumbs_path_pattern($path);
+
+  if (empty($data[$pattern_needle])) {
+
+    if ($cache = cache_get(__FUNCTION__)) {
+      $data = $cache->data;
+    }
+    else {
+      // Do heavy work and cache results.
+      ctools_include('export');
+      // No need to sort variants by weight because path_breadcrumbs_load_all()
+      // already sorted all data.
+      $result = path_breadcrumbs_load_all();
+
+      foreach ($result as $path_breadcrumbs) {
+        if (empty($path_breadcrumbs->disabled)) {
+          $pattern = path_breadcrumbs_path_pattern($path_breadcrumbs->path);
+          $data[$pattern][] = $path_breadcrumbs;
+        }
+      }
+      cache_set(__FUNCTION__, $data, 'cache');
+    }
+  }
+
+  return isset($data[$pattern_needle]) ? $data[$pattern_needle] : array();
 }
 
 /**
  * Load ctools contexts from path arguments.
  *
  * @param $arguments
- *   Path arguments.
+ *   URL arguments.
+ * @param bool $empty
+ *   Define load context for empty arguments or not
  * @return array
+ *   Array with context plugins.
  */
 function path_breadcrumbs_get_contexts_from_arguments($arguments, $empty = FALSE) {
   $contexts = array();
@@ -538,4 +567,75 @@ function path_breadcrumbs_object_cache_set($name, $data) {
 function path_breadcrumbs_object_cache_clear($name) {
   ctools_include('object-cache');
   ctools_object_cache_clear('path_breadcrumbs', $name);
+}
+
+/**
+ * Create sql pattern from url.
+ * Replaces all path arguments except the 1st one with %-symbol.
+ *
+ * @param string $path
+ * @return string pattern
+ */
+function path_breadcrumbs_path_pattern($path) {
+  $cache = &drupal_static(__FUNCTION__);
+  if (empty($cache[$path])) {
+    // Example: 'node/%node/view' -> 'node/%/%
+    $cache[$path] = preg_replace("
+            /\/     # start with slash
+            [^\/]+  # all symbols except for the slash
+            /x", '/%', $path);
+  }
+  return $cache[$path];
+}
+
+/**
+ * This is version of drupal_sort_weight() for objects.
+ * Function used by uasort to sort array of objects by weight.
+ *
+ * @param $a
+ * @param $b
+ * @return int
+ */
+function _path_breadcrumbs_sort_weight($a, $b) {
+  $a_weight = isset($a->weight) ? $a->weight : 0;
+  $b_weight = isset($b->weight) ? $b->weight : 0;
+  if ($a_weight == $b_weight) {
+    return 0;
+  }
+  return ($a_weight < $b_weight) ? -1 : 1;
+}
+
+/**
+ * Ctools export callback.
+ *
+ * @param $path_breadcrumbs
+ * @param $indent
+ * @return string
+ */
+function path_breadcrumbs_export($path_breadcrumbs, $indent) {
+  // Structure object according to schema.
+  $path_breadcrumbs->data = array(
+    'titles'        => $path_breadcrumbs->titles,
+    'paths'         => $path_breadcrumbs->paths,
+    'home'          => $path_breadcrumbs->home,
+    'translatable'  => $path_breadcrumbs->translatable,
+    'arguments'     => $path_breadcrumbs->arguments,
+    'access'        => $path_breadcrumbs->access,
+  );
+  return ctools_export_object('path_breadcrumbs', $path_breadcrumbs, $indent);
+}
+
+/**
+ * Ctools list callback of all avalible path_breadcrumbs objects.
+ *
+ * @return array
+ */
+function path_breadcrumbs_export_list() {
+  $list = array();
+  $result = path_breadcrumbs_load_all();
+  foreach ($result as $path_breadcrumbs) {
+    $string = $path_breadcrumbs->name . " (" . $path_breadcrumbs->machine_name . ")";
+    $list[$path_breadcrumbs->machine_name] = check_plain($string);
+  }
+  return $list;
 }

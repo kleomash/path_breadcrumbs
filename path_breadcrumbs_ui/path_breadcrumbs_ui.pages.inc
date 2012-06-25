@@ -71,28 +71,28 @@ function path_breadcrumbs_ui_edit_page($path_breadcrumb) {
   $links[] = array(
     '#type' => 'link',
     '#title' => t('Basic'),
-    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/1',
+    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->machine_name . '/ajax/1',
     '#attributes' => array('class' => array('use-ajax', 'active')),
   );
 
   $links[] = array(
     '#type' => 'link',
     '#title' => t('Arguments'),
-    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/2',
+    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->machine_name . '/ajax/2',
     '#attributes' => array('class' => array('use-ajax')),
   );
 
   $links[] = array(
     '#type' => 'link',
     '#title' => t('Selection rules'),
-    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/3',
+    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->machine_name . '/ajax/3',
     '#attributes' => array('class' => array('use-ajax')),
   );
 
   $links[] = array(
     '#type' => 'link',
     '#title' => t('Breadcrumbs'),
-    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->path_id . '/ajax/4',
+    '#href' => 'admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->machine_name . '/ajax/4',
     '#attributes' => array('class' => array('use-ajax')),
   );
 
@@ -146,17 +146,12 @@ function path_breadcrumbs_ui_edit_form_ajax_links($breadcrumb, $step) {
 /**
  * Disables path breadcrumb.
  */
-function path_breadcrumbs_ui_disable_breadcrumbs_page($breadcrumb) {
+function path_breadcrumbs_ui_disable_breadcrumbs_page($path_breadcrumbs) {
+  ctools_include('export');
+  ctools_export_crud_disable('path_breadcrumbs', $path_breadcrumbs);
+  cache_clear_all('path_breadcrumbs', 'cache', TRUE);
 
-  // Update breadcrumb in database.
-  db_update('path_breadcrumbs')
-    ->fields(array(
-    'disabled' => 1,
-  ))
-    ->condition('path_id', $breadcrumb->path_id)
-    ->execute();
-
-  drupal_set_message(t('Breadcrumb %name was disabled', array('%name' => $breadcrumb->name)));
+  drupal_set_message(t('Breadcrumb %name was disabled', array('%name' => $path_breadcrumbs->name)));
 
   drupal_goto('admin/structure/path-breadcrumbs');
 }
@@ -164,17 +159,14 @@ function path_breadcrumbs_ui_disable_breadcrumbs_page($breadcrumb) {
 /**
  * Enables path breadcrumb.
  */
-function path_breadcrumbs_ui_enable_breadcrumbs_page($breadcrumb) {
+function path_breadcrumbs_ui_enable_breadcrumbs_page($path_breadcrumbs) {
 
   // Update breadcrumb in database.
-  db_update('path_breadcrumbs')
-    ->fields(array(
-    'disabled' => 0,
-  ))
-    ->condition('path_id', $breadcrumb->path_id)
-    ->execute();
+  ctools_include('export');
+  ctools_export_crud_enable('path_breadcrumbs', $path_breadcrumbs);
+  cache_clear_all('path_breadcrumbs', 'cache', TRUE);
 
-  drupal_set_message(t('Breadcrumb %name was enabled', array('%name' => $breadcrumb->name)));
+  drupal_set_message(t('Breadcrumb %name was enabled', array('%name' => $path_breadcrumbs->name)));
 
   drupal_goto('admin/structure/path-breadcrumbs');
 }

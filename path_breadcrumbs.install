@@ -22,12 +22,32 @@ function path_breadcrumbs_uninstall() {
  */
 function path_breadcrumbs_schema() {
   $schema['path_breadcrumbs'] = array(
+    'description' => 'Stores path breadcrumbs.',
+    'export' => array(
+      'key' => 'machine_name',
+      'primary key' => 'path_id',
+      'identifier' => 'path_breadcrumb',
+      'default hook' => 'path_breadcrumbs_settings_info',
+      'can disable' => FALSE,
+      'load callback' => 'path_breadcrumbs_load_by_name',
+      'load multiple callback' => 'path_breadcrumbs_load_by_name_multiple',
+      'load all callback' => 'path_breadcrumbs_load_all',
+      'export callback' => 'path_breadcrumbs_export',
+      'list callback' => 'path_breadcrumbs_export_list',
+      'api' => array(
+        'owner' => 'path_breadcrumbs',
+        'api' => 'path_breadcrumbs',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
     'fields' => array(
       'path_id' => array(
         'description' => t("Breadcrumb's variant unique identifier"),
         'type' => 'serial',
         'unsigned' => TRUE,
-        'not null' => TRUE
+        'not null' => TRUE,
+        'no export' => TRUE,
       ),
       'machine_name' => array(
         'description' => t("Breadcrumb's variant machine name"),
@@ -52,6 +72,8 @@ function path_breadcrumbs_schema() {
         'type' => 'blob',
         'not null' => TRUE,
         'size' => 'big',
+        'serialize' => TRUE,
+        'object default' => array(),
       ),
       'weight' => array(
         'description' => t('Breadcrumb weight related to other breadcrumbs'),
@@ -59,25 +81,10 @@ function path_breadcrumbs_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
-      'disabled' => array(
-        'description' => t('Shows enabled this variant or not'),
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
     ),
     'primary key' => array('path_id'),
-    'export' => array(
-      'key' => 'path_id',
-      'identifier' => 'path_breadcrumb',
-      'default hook' => 'path_breadcrumb_settings_info',
-      'can disable' => FALSE,
-      'api' => array(
-        'owner' => 'path_breadcrumbs',
-        'api' => 'path_breadcrumbs',
-        'minimum_version' => 1,
-        'current_version' => 1,
-      ),
+    'unique keys' => array(
+      'machine_name' => array('machine_name'), // Added in path_breadcrumbs_update_7214().
     ),
   );
 
@@ -196,4 +203,13 @@ function path_breadcrumbs_update_7213() {
     $breadcrumb->paths  = explode("\n", $breadcrumb->paths);
     path_breadcrumbs_save($breadcrumb);
   }
+}
+
+/**
+ * Add unique index to field 'machine_name'.
+ * Remove field 'disabled' from schema.
+ */
+function path_breadcrumbs_update_7214() {
+  db_add_unique_key('path_breadcrumbs', 'machine_name', array('machine_name'));
+  db_drop_field('path_breadcrumbs', 'disabled');
 }

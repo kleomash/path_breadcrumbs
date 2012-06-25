@@ -11,21 +11,45 @@
  * This hook is called by CTools. For this hook to work, you need
  * hook_ctools_plugin_api(). The values of this hook can be overridden
  * and reverted through the UI.
+ *
+ * @return array
+ *   Array with importable objects.
  */
-function hook_path_breadcrumb_settings_info() {
+function hook_path_breadcrumbs_settings_info() {
   $path_breadcrumbs = array();
 
   $path_breadcrumb = new stdClass();
   $path_breadcrumb->api_version = 1;
-  $path_breadcrumb->path_id = '1001';
   $path_breadcrumb->machine_name = 'example_breadcrumb';
   $path_breadcrumb->name = 'Example breadcrumb';
   $path_breadcrumb->path = 'node/%node';
-  $path_breadcrumb->data = 'a:6:{s:6:"titles";a:3:{i:0;s:51:"1%node:content-type (%node:content-type:node-count)";i:1;s:11:"%node:title";i:2;s:19:"%node:comment-count";}s:5:"paths";a:3:{i:0;s:36:"node/%node:content-type:machine-name";i:1;s:14:"node/%node:nid";i:2;s:6:"<none>";}s:4:"home";i:1;s:12:"translatable";i:0;s:9:"arguments";a:1:{s:4:"node";a:3:{s:8:"position";i:1;s:8:"argument";s:14:"entity_id:node";s:8:"settings";a:1:{s:10:"identifier";s:8:"Node: ID";}}}s:6:"access";a:0:{}}';
+  $path_breadcrumb->data = array(
+    'titles' => array(
+      0 => 'Content',
+      1 => '%node:title',
+      2 => '%node:comment-count',
+    ),
+    'paths' => array(
+      0 => 'node',
+      1 => 'node/%node:nid',
+      2 => '<none>',
+    ),
+    'home' => 1,
+    'translatable' => 0,
+    'arguments' => array(
+      'node' => array(
+        'position' => 1,
+        'argument' => 'entity_id:node',
+        'settings' => array(
+          'identifier' => 'Node: ID',
+        ),
+      ),
+    ),
+    'access' => array(),
+  );
   $path_breadcrumb->weight = 0;
-  $path_breadcrumb->disabled = 0;
 
-  $path_breadcrumbs[] = $path_breadcrumb;
+  $path_breadcrumbs['example_breadcrumb'] = $path_breadcrumb;
 
   return $path_breadcrumbs;
 }
