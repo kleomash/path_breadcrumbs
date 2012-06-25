@@ -290,10 +290,10 @@ function path_breadcrumbs_import_form_submit($form, &$form_state) {
   }
   if (path_breadcrumbs_save($path_breadcrumbs)) {
     if (!empty($path_breadcrumbs_original)) {
-      drupal_set_message(t('Path breadcrumb "!name" was successfully updated.', array('!name' => filter_xss($path_breadcrumbs->name))));
+      drupal_set_message(filter_xss(t('Path breadcrumb "!name" was successfully updated.', array('!name' => $path_breadcrumbs->name))));
     }
     else {
-      drupal_set_message(t('Path breadcrumb "!name" was successfully imported.', array('!name' => filter_xss($path_breadcrumbs->name))));
+      drupal_set_message(filter_xss(t('Path breadcrumb "!name" was successfully imported.', array('!name' => $path_breadcrumbs->name))));
     }
   }
   else {
