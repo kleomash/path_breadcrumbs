@@ -192,16 +192,22 @@ function path_breadcrumbs_update_7208() {
  */
 function path_breadcrumbs_update_7213() {
 
-  $path_ids = db_select('path_breadcrumbs', 'p')
-    ->fields('p', array('path_id'))
-    ->execute();
+ $result = db_select('path_breadcrumbs', 'p')
+          ->fields('p')
+          ->execute();
 
-  // Update paths and titles.
-  foreach ($path_ids as $path) {
-    $breadcrumb = path_breadcrumbs_load($path->path_id);
-    $breadcrumb->titles = explode("\n", $breadcrumb->titles);
-    $breadcrumb->paths  = explode("\n", $breadcrumb->paths);
-    path_breadcrumbs_save($breadcrumb);
+  foreach ($result as $path_breadcrumbs) {
+    $path_breadcrumbs->data = unserialize($path_breadcrumbs->data);
+    $path_breadcrumbs->data['titles'] = explode("\n", $path_breadcrumbs->data['titles']);
+    $path_breadcrumbs->data['paths']  = explode("\n", $path_breadcrumbs->data['paths']);
+    // Update every path breadcrumb to new data storage mechanism
+    db_update('path_breadcrumbs')
+      ->fields( array('data' => serialize($path_breadcrumbs->data)) )
+      ->condition('path_id', $path_breadcrumbs->path_id)
+      ->execute();
+    // Clear UI caches
+    ctools_include('object-cache');
+    ctools_object_cache_clear_all('path_breadcrumbs', $path_breadcrumbs->machine_name);
   }
 }
 
