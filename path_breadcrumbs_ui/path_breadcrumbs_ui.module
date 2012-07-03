@@ -717,7 +717,7 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
       $context = ctools_context_get_context_from_argument($argument, $keyword, TRUE);
       $converters = ctools_context_get_converters('%' . check_plain($keyword) . ':', $context);
       foreach ($converters as $substitution => $title) {
-        //$rows[] = array(check_plain($substitution), t($title));
+        $rows[] = array(check_plain($substitution), t($title));
       }
     }
   }
@@ -729,39 +729,9 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
     '#collapsed' => TRUE,
   );
 
-  module_load_include('pages.inc', 'token');
-
-  $options = array(
-    'flat' => TRUE,
-  );
-  $tree = token_build_tree('node', $options);
-  foreach ($tree as $token => $token_info) {
-    if (!empty($token_info['restricted'])) {
-      continue;
-    }
-    $row = _token_token_tree_format_row($token, $token_info);
-
-
-    $row['data']['note'] .= $row['data']['name'] . ' : ' . $row['data']['description'];
-    unset($row['data']['description']);
-    unset($row['data']['value']);
-    unset($row['data']['name']);
-    $rows[] = $row;
-  }
-
   $form['contexts']['placeholders'] = array(
-    '#theme' => 'tree_table',
-    '#header' => array(t('Keyword'), t('Value')),
-    '#rows' => $rows,
-    '#attributes' => array('class' => array('token-tree')),
-    '#empty' => t('No tokens available.'),
-    '#attached' => array(
-      'js' => array(drupal_get_path('module', 'token') . '/token.js'),
-      'css' => array(drupal_get_path('module', 'token') . '/token.css'),
-    ),
+    '#markup' => theme('table', array('header' => array(t('Keyword'), t('Value')), 'rows' => $rows)),
   );
-
-
 
   $form['#validate'][] = '_path_breadcrumbs_ui_form_step_breadcrumbs_settings_validate';
   $form['#submit'][]   = '_path_breadcrumbs_ui_form_step_breadcrumbs_settings_submit';
