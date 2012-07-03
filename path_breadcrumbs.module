@@ -141,6 +141,11 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
 
   foreach ($path_breadcrumb->titles_prepared as $key => $title) {
 
+    // Remove breadcrumb from navigation if it is empty.
+    if (empty($title)) {
+      continue;
+    }
+
     // Translate breadcrumb title if needed.
     if ($path_breadcrumb->translatable == TRUE) {
       $title = t($title);
