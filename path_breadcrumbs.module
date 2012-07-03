@@ -252,8 +252,20 @@ function path_breadcrumbs_breadcrumb($variables) {
       $href = '';
       if (!empty($matches[1])) {
         global $base_path;
-        if (stripos($matches[1], $base_path) === 0) {
-          $href = drupal_substr($matches[1], drupal_strlen($base_path));
+        global $language;
+
+        $base_string = $base_path;
+        if (!empty($language->prefix)) {
+          $base_string .= $language->prefix . '/';
+        }
+
+        // Means that this is href to the frontpage.
+        if (drupal_strlen($base_string) > drupal_strlen($matches[1])) {
+          $href = '';
+        }
+        // All hrefs exept frontpage.
+        elseif (stripos($matches[1], $base_string) === 0) {
+          $href = drupal_substr($matches[1], drupal_strlen($base_string));
         }
         else {
           $href = $matches[1];
