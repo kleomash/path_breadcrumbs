@@ -272,13 +272,18 @@ function path_breadcrumbs_breadcrumb($variables) {
         elseif (stripos($matches[1], $base_string) === 0) {
           $href = drupal_substr($matches[1], drupal_strlen($base_string));
         }
+        // Other cases.
         else {
-          $href = $matches[1];
+          // HREF param can't starts with '/'.
+          $href = stripos($matches[1], '/') === 0 ? drupal_substr($matches[1], 1) : $matches[1];
         }
+
+        // If HREF param is empty it should be linked to a front page.
         $href = empty($href) ? '<front>' : $href;
       }
 
-      $title = strip_tags($breadcrumb);
+      // Get breadcrumb title from a link like "<a href = "/path">title</a>".
+      $title = trim(strip_tags($breadcrumb));
 
       // Wrap title in additional element for microdata support.
       if ($snippet == PATH_BREADCRUMBS_RICH_SNIPPETS_MICRODATA) {

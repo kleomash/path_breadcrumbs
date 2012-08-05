@@ -320,6 +320,11 @@ function _path_breadcrumbs_ui_add_form_finish_ajax_callback($form, &$form_state)
 
     // Redirect user to page with breadcrumbs list.
     ctools_include('ajax');
+
+    // Ajax responder not required since CTools 7.x-1.0 but this line
+    // should be added to keep module works properly.
+    ctools_add_js('ajax-responder');
+
     $commands   = array();
     $commands[] = ctools_ajax_command_redirect('admin/structure/path-breadcrumbs');
     return array('#type' => 'ajax', '#commands' => $commands);
@@ -915,13 +920,9 @@ function _path_breadcrumbs_ui_form_attach_buttons(&$form, $buttons = array(), $f
  *
  * @param $form
  * @param $form_state
- * @param null $path_name
- *   Machine name of breadcrumb.
- * @param null $keyword
- *   Keyword of replacement in arguments.
  * @return array
  */
-function path_breadcrumbs_ui_argument_context_form($form, $form_state) {
+function path_breadcrumbs_ui_argument_context_form($form, &$form_state) {
 
   $form['#prefix'] = '<div id="path-breadcrumbs-ui-argument-context-form-wrapper">';
   $form['#suffix'] = '</div>';
@@ -1198,7 +1199,14 @@ function path_breadcrumbs_ui_edit_form_ajax_callback($form, $form_state) {
   if (!form_get_errors()) {
     $values = $form_state['values'];
     if (isset($values['update_save']) && $values['op'] == $values['update_save']) {
+
+      // Redirect user to page with breadcrumbs list.
       ctools_include('ajax');
+
+      // Ajax responder not required since CTools 7.x-1.0 but this line
+      // should be added to keep module works properly.
+      ctools_add_js('ajax-responder');
+
       $commands = array();
       $commands[] = ctools_ajax_command_redirect('admin/structure/path-breadcrumbs');
       return array('#type' => 'ajax', '#commands' => $commands);
