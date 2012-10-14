@@ -77,6 +77,12 @@ function path_breadcrumbs_ui_menu() {
     'file' => 'path_breadcrumbs_ui.pages.inc',
   );
 
+  $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs_ui_cache/main'] = array(
+    'title' => 'Main',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+
   $items['admin/structure/path-breadcrumbs/edit/%path_breadcrumbs_ui_cache/ajax/%'] = array(
     'page callback' => 'path_breadcrumbs_ui_edit_form_ajax_links',
     'page arguments' => array(4, 6),
@@ -259,7 +265,7 @@ function path_breadcrumbs_ui_add_form_submit($form, &$form_state) {
     }
   }
   elseif (isset($values['machine_name'])) {
-    // Save machina name in form storage.
+    // Save machine name in form storage.
     $form_state['storage']['machine_name'] = $values['machine_name'];
   }
 
@@ -629,14 +635,22 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
   $form['translatable'] = array(
     '#type' => 'checkbox',
     '#title' => t('Translatable'),
-    '#description' => t('Every breadcrumb will be available for translation.'),
     '#default_value' => isset($breadcrumb->translatable) ? $breadcrumb->translatable : 0,
   );
+
+  // Add help message about path_breadcrumbs_i18n module.
+  if (!module_exists('path_breadcrumbs_i18n')) {
+    $form['translatable']['#disabled'] = TRUE;
+    $form['translatable']['#description'] = t('You have to enable <a href="@modules_url">@module_name</a> module if you need translatable breadcrumbs.', array('@module_name' => 'Path breadcrumbs translation', '@modules_url' => url('admin/modules')));
+  }
+  else {
+    $form['translatable']['#description'] = t('Every breadcrumb will be available for translation.');
+  }
 
   $form['home'] = array(
     '#type' => 'checkbox',
     '#title' => t('Prepend Home link to the breadcrumb'),
-    '#description' => t('First breadcrumb will be a link to the front page. This setting will override the default behavior.'),
+    '#description' => t('First breadcrumb will be a link to the front page.'),
     '#default_value' => isset($breadcrumb->home) ? $breadcrumb->home : variable_get('path_breadcrumbs_home_link_enabled', 1),
   );
 
@@ -722,7 +736,7 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
       $context = ctools_context_get_context_from_argument($argument, $keyword, TRUE);
       $converters = ctools_context_get_converters('%' . check_plain($keyword) . ':', $context);
       foreach ($converters as $substitution => $title) {
-        $rows[] = array(check_plain($substitution), t($title));
+        $rows[] = array(check_plain($substitution), $title);
       }
     }
   }

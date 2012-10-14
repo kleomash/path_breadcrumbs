@@ -8,12 +8,11 @@
 /**
  * Page callback for module settings page.
  */
-function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
+function path_breadcrumbs_ui_breadcrumbs_list($form, &$form_state) {
 
   // Load path breadcrumbs.
   $result = path_breadcrumbs_load_all();
 
-  // NOTE: Is it too heavy?
   $form_state['storage']['objects'] = $result;
   $form['#tree'] = TRUE;
 
@@ -21,7 +20,7 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
     $form[$path->machine_name]['title']['#markup'] = $path->name;
     // If object is overwritten.
     if ($path->is_overwritten) {
-      $form[$path->machine_name]['title']['#markup'] .= '<sup>'. $path->type .'</sup>';
+      $form[$path->machine_name]['title']['#markup'] .= '<sup>' . $path->type . '</sup>';
     }
     $form[$path->machine_name]['name']['#markup'] = $path->machine_name;
     $form[$path->machine_name]['path']['#markup'] = $path->path;
@@ -64,8 +63,11 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, $form_state) {
       );
     }
 
-    $form[$path->machine_name]['actions']['#markup'] = theme('links__ctools_dropbutton',
-      array('links' => $operations, 'attributes' => array('class' => array('links', 'inline'))));
+    $form[$path->machine_name]['actions'] = array(
+      '#theme' => 'links__ctools_dropbutton',
+      '#links' => $operations,
+      '#attributes' => array('class' => array('links', 'inline'))
+    );
 
     $form[$path->machine_name]['weight'] = array(
       '#type' => 'weight',
