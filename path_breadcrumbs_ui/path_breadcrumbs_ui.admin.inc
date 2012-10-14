@@ -204,11 +204,15 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
  * Submit function for path_breadcrumbs_ui_settings form.
  */
 function path_breadcrumbs_ui_settings_submit($form, &$form_state) {
+  $values = $form_state['values'];
+
   // Flush theme registry if internal render was changed to enable/disable system render in theme_breadcrumb() function.
-  $internal_render_new_value = $form_state['values']['path_breadcrumbs_internal_render'];
-  $internal_render_old_value = variable_get('path_breadcrumbs_internal_render', 1);
-  if ($internal_render_new_value != $internal_render_old_value) {
-    drupal_theme_rebuild();
+  if (isset($values['path_breadcrumbs_internal_render'])) {
+    $internal_render_new_value = $values['path_breadcrumbs_internal_render'];
+    $internal_render_old_value = variable_get('path_breadcrumbs_internal_render', 1);
+    if ($internal_render_new_value != $internal_render_old_value) {
+      drupal_theme_rebuild();
+    }
   }
 }
 
