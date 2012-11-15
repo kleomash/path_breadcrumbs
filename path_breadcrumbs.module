@@ -254,6 +254,13 @@ function path_breadcrumbs_breadcrumb($variables) {
         global $language;
 
         $base_string = $base_path;
+
+        // Append additional params to base string if clean urls are disabled.
+        if (!variable_get('clean_url', 0)) {
+          $base_string .= '?q=';
+        }
+
+        // Append additional params to base string for multilingual sites.
         if (!empty($language->prefix)) {
           $base_string .= $language->prefix . '/';
         }
