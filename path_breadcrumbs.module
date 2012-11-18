@@ -206,12 +206,12 @@ function path_breadcrumbs_breadcrumb($variables) {
     $elem_tag = 'span';
     $elem_property = '';
     $root_property = '';
-    $options = array();
+    $options = array('html' => TRUE);
     $snippet = variable_get('path_breadcrumbs_rich_snippets', PATH_BREADCRUMBS_RICH_SNIPPETS_DISABLED);
     if ($snippet == PATH_BREADCRUMBS_RICH_SNIPPETS_RDFA) {
 
       // Add link options for RDFa support.
-      $options = array('attributes' => array('rel' => 'v:url', 'property' => 'v:title'), 'absolute' => TRUE, 'html' => TRUE);
+      $options = array('attributes' => array('rel' => 'v:url', 'property' => 'v:title'), 'absolute' => TRUE);
 
       // Set correct properties for RDFa support.
       $elem_property = 'typeof="v:Breadcrumb"';
@@ -220,7 +220,7 @@ function path_breadcrumbs_breadcrumb($variables) {
     elseif ($snippet == PATH_BREADCRUMBS_RICH_SNIPPETS_MICRODATA) {
 
       // Add link options for microdata support.
-      $options = array('attributes' => array('itemprop' => 'url'), 'absolute' => TRUE, 'html' => TRUE);
+      $options = array('attributes' => array('itemprop' => 'url'), 'absolute' => TRUE);
 
       // Set correct properties for microdata support.
       $elem_property = 'itemscope itemtype="http://data-vocabulary.org/Breadcrumb"';
