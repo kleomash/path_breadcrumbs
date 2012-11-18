@@ -367,6 +367,7 @@ function path_breadcrumbs_delete($name) {
 
   // Call ctools functions to remove object correctly.
   ctools_export_crud_delete('path_breadcrumbs', $path_breadcrumbs);
+  path_breadcrumbs_object_cache_clear($name);
   cache_clear_all('path_breadcrumbs', 'cache', TRUE);
 }
 
