@@ -170,3 +170,102 @@ function path_breadcrumbs_ui_enable_breadcrumbs_page($path_breadcrumbs) {
 
   drupal_goto('admin/structure/path-breadcrumbs');
 }
+
+/**
+ * AJAX callback for tokens autocomplete.
+ */
+function path_breadcrumbs_ui_tokens_ajax_autocomplete($path_breadcrumbs, $string) {
+
+  // Check if path breadcrumbs object is loaded.
+  if (empty($path_breadcrumbs)) {
+    return;
+  }
+
+  // Build context substitutions.
+  $contexts = array();
+  if (!empty($path_breadcrumbs->arguments)) {
+
+    // Include ctools library for contexts.
+    ctools_include('context');
+
+    foreach ($path_breadcrumbs->arguments as $keyword => $arg) {
+
+      // Load argument plugin with its settings.
+      $argument = ctools_get_argument($arg['argument']);
+      if (isset($arg['settings'])) {
+        $argument += $arg['settings'];
+        $argument['id'] = 1;
+      }
+
+      // Load entity context.
+      $contexts[] = ctools_context_get_context_from_argument($argument, $keyword, TRUE);
+    }
+  }
+
+  // Get current token depth.
+  if (!empty($string)) {
+    preg_match_all('/:/', $string, $matches);
+    $current_token_level = count($matches[0]);
+  }
+  if (empty($current_token_level)) {
+    $current_token_level = 1;
+  }
+
+  $tokens[] = array();
+  foreach ($contexts as $context) {
+
+    if (empty($context->type)) {
+      continue;
+    }
+
+    foreach ($context->type as $token_type) {
+      $tree = token_build_tree($token_type, array('depth' => $current_token_level + 1));
+      if (!empty($tree)) {
+        $tokens += $tree;
+      }
+    }
+  }
+
+  $tokens = _path_breadcrumbs_ui_flat_token_tree($tokens);
+
+  // Build all tokens for this breadcrumb.
+  $matches_output = array();
+
+  foreach ($tokens as $token_key => $token) {
+
+    preg_match_all('/:/', $token_key, $matches);
+    $token_level = count($matches[0]);
+
+    if ($token_key[strlen($token_key) - 2] == ':') {
+      $token_level--;
+    }
+
+    if ($current_token_level == $token_level) {
+
+      if (!empty($string) && stripos($token_key, substr($string, 1)) !== 1) {
+        continue;
+      }
+
+      $ctools_token = '%' . drupal_substr($token_key, 1, drupal_strlen($token_key) - 2);
+
+      $attributes = array();
+
+      if (!empty($token['description'])) {
+        $attributes['title'] = $token['description'];
+      }
+
+      if ($ctools_token[strlen($ctools_token) - 1] == ':') {
+        $attributes['class'][] = 'token-expandable';
+        $text = $ctools_token . '... (' . $token['name'] . ')';
+      }
+      else {
+        $attributes['class'][] = 'token-normal';
+        $text = $ctools_token . ' (' . $token['name'] . ')';
+      }
+
+      $matches_output[$ctools_token] = "<div" . drupal_attributes($attributes) . ">$text</div>";
+    }
+  }
+
+  drupal_json_output($matches_output);
+}

@@ -47,7 +47,13 @@ function _path_breadcrumbs_render_table($vars) {
     );
 
     $headers = array(t('Link title'), t('Link path'), t('Delete link'));
-    $output = theme('table', array('header' => $headers, 'rows' => $rows));
+    $output = theme('table', array(
+      'header' => $headers,
+      'rows' => $rows,
+      'attributes' => array(
+        'class' => array('breadcrumb-tokens')
+      ),
+    ));
 
     // Build some other elements after table.
     $context_placeholders = render($form['contexts']);

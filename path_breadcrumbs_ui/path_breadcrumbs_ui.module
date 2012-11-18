@@ -138,6 +138,14 @@ function path_breadcrumbs_ui_menu() {
     'file' => 'path_breadcrumbs_ui.pages.inc',
   );
 
+  $items['path_breadcrumbs_ui/%path_breadcrumbs_ui_cache'] = array(
+    'page callback' => 'path_breadcrumbs_ui_tokens_ajax_autocomplete',
+    'page arguments' => array(1, 2),
+    'access arguments' => array('administer path breadcrumbs'),
+    'type' => MENU_CALLBACK,
+    'file' => 'path_breadcrumbs_ui.pages.inc',
+  );
+
   return $items;
 }
 
@@ -749,8 +757,22 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
   );
 
   $form['contexts']['placeholders'] = array(
-    '#markup' => theme('table', array('header' => array(t('Keyword'), t('Value')), 'rows' => $rows)),
+    '#theme' => 'table',
+    '#header' => array(t('Keyword'), t('Value')),
+    '#rows' => $rows,
   );
+
+
+  $form['#attached']['library'][] = array('system', 'ui.autocomplete');
+  $form['#attached']['library'][] = array('system', 'ui.button');
+  $form['#attached']['js'][] = drupal_get_path('module', 'path_breadcrumbs_ui') . '/js/path_breadcrumbs_ui.js';
+
+  $form['#attached']['js'][] = array(
+    'data' => array('pathBreadcrumbsUI' => array('machineName' => $form_state['storage']['machine_name'])),
+    'type' => 'setting',
+  );
+
+  $form['#attached']['css'][] = drupal_get_path('module', 'path_breadcrumbs_ui') . '/css/path_breadcrumbs_ui.css';
 
   $form['#validate'][] = '_path_breadcrumbs_ui_form_step_breadcrumbs_settings_validate';
   $form['#submit'][]   = '_path_breadcrumbs_ui_form_step_breadcrumbs_settings_submit';
@@ -760,6 +782,27 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
   if (isset($form_state['storage']['machine_name'])) {
     _path_breadcrumbs_ui_form_apply_default_values($form, $form_state['storage']['machine_name']);
   }
+}
+
+/**
+ * Make tokens tree more flated.
+ * Add fake tokens for tokens with children.
+ *
+ * @param $tree
+ *   Token tree.
+ * @return array
+ */
+function _path_breadcrumbs_ui_flat_token_tree($tree) {
+  $result = array();
+  foreach ($tree as $token => $token_info) {
+    $result[$token] = $token_info;
+    if (!empty($token_info['children']) && is_array($token_info['children'])) {
+      $token_expanded = drupal_substr($token, 0, drupal_strlen($token) - 1) . ':]';
+      $result[$token_expanded] = $token_info;
+      $result += _path_breadcrumbs_ui_flat_token_tree($token_info['children']);
+    }
+  }
+  return $result;
 }
 
 /**
