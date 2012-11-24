@@ -91,7 +91,7 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, &$form_state) {
     '#value' => t('Save'),
   );
 
-  $form['#attached']['css'][] = drupal_get_path('module', 'path_breadcrumbs_ui') . '/path_breadcrumbs_ui.css';
+  $form['#attached']['css'][] = drupal_get_path('module', 'path_breadcrumbs_ui') . '/css/path_breadcrumbs_ui.css';
 
   return $form;
 }

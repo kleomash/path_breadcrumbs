@@ -243,7 +243,7 @@ function path_breadcrumbs_ui_add_form($form, &$form_state, $show_navigation = TR
   $form['#submit'][] = 'path_breadcrumbs_ui_add_form_submit';
 
   // Attach styles to form.
-  $form['#attached']['css'][] = drupal_get_path('module', 'path_breadcrumbs_ui') . '/path_breadcrumbs_ui.css';
+  $form['#attached']['css'][] = drupal_get_path('module', 'path_breadcrumbs_ui') . '/css/path_breadcrumbs_ui.css';
 
   // Build form according to current step.
   $function = '_path_breadcrumbs_ui_form_step_' . $form_build_function;
@@ -722,36 +722,9 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
   $rows[] = array(check_plain('<none>'), t('Used for the link path to bring a breadcrumb as plain text.'));
   $rows[] = array('!page_title', t('Current page title'));
 
-  // Build context substitutions.
-  if (!empty($breadcrumb->arguments)) {
-
-    // Include ctools library for contexts.
-    ctools_include('context');
-
-    foreach ($breadcrumb->arguments as $keyword => $arg) {
-
-      // Provide module placeholder for arguments.
-      $rows[] = array('!' . $keyword, t('Unprocessed value of placeholder as it presented in the page url.'));
-
-      // Load argument plugin with its settings.
-      $argument = ctools_get_argument($arg['argument']);
-      if (isset($arg['settings'])) {
-        $argument += $arg['settings'];
-        $argument['id'] = 1;
-      }
-
-      // Provide tokens for selected contexts.
-      $context = ctools_context_get_context_from_argument($argument, $keyword, TRUE);
-      $converters = ctools_context_get_converters('%' . check_plain($keyword) . ':', $context);
-      foreach ($converters as $substitution => $title) {
-        $rows[] = array(check_plain($substitution), $title);
-      }
-    }
-  }
-
   $form['contexts'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Substitutions'),
+    '#title' => t('Additional substitutions'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
@@ -771,8 +744,6 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
     'data' => array('pathBreadcrumbsUI' => array('machineName' => $form_state['storage']['machine_name'])),
     'type' => 'setting',
   );
-
-  $form['#attached']['css'][] = drupal_get_path('module', 'path_breadcrumbs_ui') . '/css/path_breadcrumbs_ui.css';
 
   $form['#validate'][] = '_path_breadcrumbs_ui_form_step_breadcrumbs_settings_validate';
   $form['#submit'][]   = '_path_breadcrumbs_ui_form_step_breadcrumbs_settings_submit';
