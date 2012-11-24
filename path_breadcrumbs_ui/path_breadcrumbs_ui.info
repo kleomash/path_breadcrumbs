@@ -5,3 +5,5 @@ package = Path breadcrumbs
 configure = admin/structure/path-breadcrumbs
 
 dependencies[] = path_breadcrumbs
+
+files[] = includes/path_breadcrumbs_ui.autocomplete.inc

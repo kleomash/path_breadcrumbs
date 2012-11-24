@@ -118,7 +118,7 @@ function path_breadcrumbs_ui_edit_page($path_breadcrumb) {
   );
 
   drupal_add_library('system', 'drupal.ajax');
-  drupal_add_css(drupal_get_path('module', 'path_breadcrumbs_ui') . '/path_breadcrumbs_ui.css');
+  drupal_add_css(drupal_get_path('module', 'path_breadcrumbs_ui') . '/css/path_breadcrumbs_ui.css');
 
   return $page;
 }
@@ -202,70 +202,14 @@ function path_breadcrumbs_ui_tokens_ajax_autocomplete($path_breadcrumbs, $string
     }
   }
 
-  // Get current token depth.
-  if (!empty($string)) {
-    preg_match_all('/:/', $string, $matches);
-    $current_token_level = count($matches[0]);
-  }
-  if (empty($current_token_level)) {
-    $current_token_level = 1;
-  }
-
-  $tokens[] = array();
+  $context_keywords = array();
   foreach ($contexts as $context) {
-
-    if (empty($context->type)) {
-      continue;
-    }
-
-    foreach ($context->type as $token_type) {
-      $tree = token_build_tree($token_type, array('depth' => $current_token_level + 1));
-      if (!empty($tree)) {
-        $tokens += $tree;
-      }
-    }
+    $type = array_pop($context->type);
+    $context_keywords[$context->original_argument] = $type;
   }
 
-  $tokens = _path_breadcrumbs_ui_flat_token_tree($tokens);
+  // Load class for autocomplete ui.
+  $matches = PathBreadcrumbsUIAutocomplete::processAutocomplete($string, $context_keywords);
 
-  // Build all tokens for this breadcrumb.
-  $matches_output = array();
-
-  foreach ($tokens as $token_key => $token) {
-
-    preg_match_all('/:/', $token_key, $matches);
-    $token_level = count($matches[0]);
-
-    if ($token_key[strlen($token_key) - 2] == ':') {
-      $token_level--;
-    }
-
-    if ($current_token_level == $token_level) {
-
-      if (!empty($string) && stripos($token_key, substr($string, 1)) !== 1) {
-        continue;
-      }
-
-      $ctools_token = '%' . drupal_substr($token_key, 1, drupal_strlen($token_key) - 2);
-
-      $attributes = array();
-
-      if (!empty($token['description'])) {
-        $attributes['title'] = $token['description'];
-      }
-
-      if ($ctools_token[strlen($ctools_token) - 1] == ':') {
-        $attributes['class'][] = 'token-expandable';
-        $text = $ctools_token . '... (' . $token['name'] . ')';
-      }
-      else {
-        $attributes['class'][] = 'token-normal';
-        $text = $ctools_token . ' (' . $token['name'] . ')';
-      }
-
-      $matches_output[$ctools_token] = "<div" . drupal_attributes($attributes) . ">$text</div>";
-    }
-  }
-
-  drupal_json_output($matches_output);
+  drupal_json_output($matches);
 }
