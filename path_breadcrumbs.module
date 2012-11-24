@@ -13,6 +13,15 @@ define('PATH_BREADCRUMBS_RICH_SNIPPETS_RDFA', 1);
 define('PATH_BREADCRUMBS_RICH_SNIPPETS_MICRODATA', 2);
 
 /**
+ * Implements hook_ctools_plugin_directory().
+ */
+function path_breadcrumbs_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'ctools') {
+    return 'plugins/' . $plugin_type;
+  }
+}
+
+/**
  * Implements hook_page_alter().
  */
 function path_breadcrumbs_page_alter() {
@@ -127,12 +136,15 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
   $titles = str_replace($search, $replace, $titles);
   $paths =  str_replace($search, $replace, $paths);
 
-  // Convert arguments from url to contexts.
-  if (!empty($contexts)) {
-    // Replace placeholders by current context values.
-    $titles = ctools_context_keyword_substitute($titles, array(), $contexts);
-    $paths  = ctools_context_keyword_substitute($paths, array(), $contexts);
-  }
+  // Add custom ctools context for site.
+  $site = new ctools_context('site');
+  $site->plugin = 'site';
+  $site->keyword = 'site';
+  $contexts['site'] = $site;
+
+  // Replace placeholders by current context values.
+  $titles = ctools_context_keyword_substitute($titles, array(), $contexts);
+  $paths  = ctools_context_keyword_substitute($paths, array(), $contexts);
 
   // Explode titles and paths into array.
   $path_breadcrumb->titles_prepared = explode("\n", $titles);
