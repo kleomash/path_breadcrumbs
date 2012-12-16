@@ -385,7 +385,9 @@ function path_breadcrumbs_save($path_breadcrumbs) {
     // Allow modules to know that path_breadcrumbs were saved.
     $path_breadcrumbs->is_new = $save_result == SAVED_NEW;
     module_invoke_all('path_breadcrumbs_save', $path_breadcrumbs);
-    cache_clear_all('path_breadcrumbs', PATH_BREADCRUMBS_CACHE_STORAGE, TRUE);
+
+    // Truncate all cached data.
+    cache_clear_all('*', PATH_BREADCRUMBS_CACHE_STORAGE, TRUE);
   }
 
   // Return saving result, SAVED_NEW or SAVED_UPDATED.
