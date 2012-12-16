@@ -1,4 +1,4 @@
-name = Path breadcrubms UI
+name = Path breadcrumbs UI
 description = User interface for Path Breadcrumbs module
 core = 7.x
 package = Path breadcrumbs
