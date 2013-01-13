@@ -694,6 +694,11 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
       '#default_value' => isset($breadcrumb->paths[$i]) ? $breadcrumb->paths[$i] : '',
     );
 
+    $form['breadcrumbs_table'][$unique_hash]['weight'] = array(
+      '#type'          => 'textfield',
+      '#default_value' => $i,
+    );
+
     $form['breadcrumbs_table'][$unique_hash]['delete'] = array(
       '#name'  => 'delete_' . $unique_hash,
       '#type'  => 'submit',
@@ -734,7 +739,6 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
     '#header' => array(t('Keyword'), t('Value')),
     '#rows' => $rows,
   );
-
 
   $form['#attached']['library'][] = array('system', 'ui.autocomplete');
   $form['#attached']['library'][] = array('system', 'ui.button');
@@ -828,12 +832,20 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings_submit($form, &$for
     $form_state['rebuild'] = TRUE;
   }
 
+  // Sort breadcrumb items based on weights changed by tabledrag.
+  usort($values['breadcrumbs_table'], function($a, $b) {
+    if ($a['weight'] == $b['weight']) {
+      return 0;
+    }
+    return $a['weight'] < $b['weight'] ? 1 : -1;
+  });
+
   // Rebuild breadcrumb titles and paths.
   $titles = array();
   $paths  = array();
   foreach ($values['breadcrumbs_table'] as $value) {
-    $titles[] = $value['left_value'];
-    $paths[] = $value['right_value'];
+    array_unshift($titles, $value['left_value']);
+    array_unshift($paths, $value['right_value']);
   }
 
   // Update titles and paths in cache.
@@ -1231,8 +1243,8 @@ function path_breadcrumbs_ui_edit_form_ajax_callback($form, $form_state) {
       // Redirect user to page with breadcrumbs list.
       ctools_include('ajax');
 
-      // Ajax responder not required since CTools 7.x-1.0 but this line
-      // should be added to keep module works properly.
+      // Ajax responder is not required since CTools 7.x-1.0 but this line
+      // should be added to keep module works properly for all versions.
       ctools_add_js('ajax-responder');
 
       $commands = array();
