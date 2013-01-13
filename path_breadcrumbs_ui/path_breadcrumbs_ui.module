@@ -760,27 +760,6 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
 }
 
 /**
- * Make tokens tree more flated.
- * Add fake tokens for tokens with children.
- *
- * @param $tree
- *   Token tree.
- * @return array
- */
-function _path_breadcrumbs_ui_flat_token_tree($tree) {
-  $result = array();
-  foreach ($tree as $token => $token_info) {
-    $result[$token] = $token_info;
-    if (!empty($token_info['children']) && is_array($token_info['children'])) {
-      $token_expanded = drupal_substr($token, 0, drupal_strlen($token) - 1) . ':]';
-      $result[$token_expanded] = $token_info;
-      $result += _path_breadcrumbs_ui_flat_token_tree($token_info['children']);
-    }
-  }
-  return $result;
-}
-
-/**
  * Validate function for breadcrumbs settings form (fourth step).
  *
  * @param $form
