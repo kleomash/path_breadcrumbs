@@ -812,12 +812,7 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings_submit($form, &$for
   }
 
   // Sort breadcrumb items based on weights changed by tabledrag.
-  usort($values['breadcrumbs_table'], function($a, $b) {
-    if ($a['weight'] == $b['weight']) {
-      return 0;
-    }
-    return $a['weight'] < $b['weight'] ? 1 : -1;
-  });
+  usort($values['breadcrumbs_table'], 'drupal_sort_weight');
 
   // Rebuild breadcrumb titles and paths.
   $titles = array();
