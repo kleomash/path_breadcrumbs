@@ -708,6 +708,10 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
       '#ajax'  => array(
         'callback' => '_path_breadcrumbs_ui_form_step_breadcrumbs_settings_ajax',
         'wrapper'  => 'path-breadcrumbs-ui-form-wrapper',
+        'progress' => array(
+          'type' => 'throbber',
+          'message' => '',
+        ),
       ),
     );
   }
