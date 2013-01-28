@@ -338,8 +338,12 @@ function path_breadcrumbs_breadcrumb($variables) {
       $breadcrumbs[$key] = '<' . $elem_tag . ' class="' . implode(' ', $classes) . '" ' . $elem_property . '>' . $new_breadcrumb . '</' . $elem_tag . '>';
     }
 
+    // Get breadcrumb delimiter and wrap it into <span> for customization.
     $delimiter = variable_get('path_breadcrumbs_delimiter', '»');
-    $output .= '<div class="breadcrumb"' . $root_property . '>' . implode(' ' . trim($delimiter) . ' ', $breadcrumbs) . '</div>';
+    $delimiter = '<span class="delimiter">' . trim($delimiter) . '</span>';
+
+    // Build final version of breadcrumb's HTML output.
+    $output .= '<div class="breadcrumb"' . $root_property . '>' . implode(" $delimiter ", $breadcrumbs) . '</div>';
     return $output;
   }
 
