@@ -267,7 +267,7 @@ function path_breadcrumbs_breadcrumb($variables) {
       $elem_tag = 'div';
 
       // Add style that will display breadcrumbs wrapped in <div> inline.
-      drupal_add_css(drupal_get_path('module', 'path_breadcrumbs') . '/path_breadcrumbs.css');
+      drupal_add_css(drupal_get_path('module', 'path_breadcrumbs') . '/css/path_breadcrumbs.css');
     }
 
     foreach ($breadcrumbs as $key => $breadcrumb) {
