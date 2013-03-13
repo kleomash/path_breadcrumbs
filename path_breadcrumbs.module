@@ -550,7 +550,9 @@ function path_breadcrumbs_load_by_path($path) {
 
   if (empty($data[$pattern_needle])) {
 
-    if ($cache = cache_get(__FUNCTION__, PATH_BREADCRUMBS_CACHE_STORAGE)) {
+    $cache = cache_get(__FUNCTION__, PATH_BREADCRUMBS_CACHE_STORAGE);
+    // Ensure the cache object has data.
+    if (isset($cache->data)) {
       $data = $cache->data;
     }
     else {
