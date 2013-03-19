@@ -267,8 +267,8 @@ function path_breadcrumbs_breadcrumb($variables) {
       $options['absolute'] = TRUE;
 
       // Set correct properties for RDFa support.
-      $elem_property = 'typeof="v:Breadcrumb"';
-      $root_property = 'xmlns:v="http://rdf.data-vocabulary.org/#"';
+      $elem_property = ' typeof="v:Breadcrumb"';
+      $root_property = ' xmlns:v="http://rdf.data-vocabulary.org/#"';
     }
     elseif ($snippet == PATH_BREADCRUMBS_RICH_SNIPPETS_MICRODATA) {
 
@@ -277,7 +277,7 @@ function path_breadcrumbs_breadcrumb($variables) {
       $options['absolute'] = TRUE;
 
       // Set correct properties for microdata support.
-      $elem_property = 'itemscope itemtype="http://data-vocabulary.org/Breadcrumb"';
+      $elem_property = ' itemscope itemtype="http://data-vocabulary.org/Breadcrumb"';
       $elem_tag = 'div';
 
       // Add style that will display breadcrumbs wrapped in <div> inline.
@@ -349,7 +349,7 @@ function path_breadcrumbs_breadcrumb($variables) {
       $new_breadcrumb = !empty($href) ? l($title, $href, $options) : $title;
 
       // Replace old breadcrumb link with a new one.
-      $breadcrumbs[$key] = '<' . $elem_tag . ' class="' . implode(' ', $classes) . '" ' . $elem_property . '>' . $new_breadcrumb . '</' . $elem_tag . '>';
+      $breadcrumbs[$key] = '<' . $elem_tag . ' class="' . implode(' ', $classes) . '"' . $elem_property . '>' . $new_breadcrumb . '</' . $elem_tag . '>';
     }
 
     // Get breadcrumb delimiter and wrap it into <span> for customization.
