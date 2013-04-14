@@ -6,6 +6,17 @@
  */
 
 /**
+ * Implements hook_install().
+ */
+function path_breadcrumbs_install() {
+  db_update('system')
+    ->fields(array('weight' => 1000))
+    ->condition('name', 'path_breadcrumbs')
+    ->condition('type', 'module')
+    ->execute();
+}
+
+/**
  * Implements hook_uninstall().
  */
 function path_breadcrumbs_uninstall() {
@@ -239,4 +250,15 @@ function path_breadcrumbs_update_7300() {
 
   // Create new cache bin storage.
   db_create_table('cache_path_breadcrumbs', drupal_get_schema_unprocessed('system', 'cache'));
+}
+
+/**
+ * Set module weight to 1000.
+ */
+function path_breadcrumbs_update_7301() {
+  db_update('system')
+    ->fields(array('weight' => 1000))
+    ->condition('name', 'path_breadcrumbs')
+    ->condition('type', 'module')
+    ->execute();
 }

@@ -18,9 +18,9 @@ define('PATH_BREADCRUMBS_RICH_SNIPPETS_MICRODATA', 2);
 define('PATH_BREADCRUMBS_CACHE_STORAGE', 'cache_path_breadcrumbs');
 
 /**
- * Implements hook_init().
+ * Implements hook_page_alter().
  */
-function path_breadcrumbs_init() {
+function path_breadcrumbs_page_alter() {
 
   // See if current page has path breadcrumbs.
   $breadcrumbs = path_breadcrumbs_load_variant(current_path());
