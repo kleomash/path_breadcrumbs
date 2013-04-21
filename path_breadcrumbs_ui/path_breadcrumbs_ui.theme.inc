@@ -63,11 +63,12 @@ function _path_breadcrumbs_render_table($vars) {
 
     // Build some other elements after table.
     $context_placeholders = render($form['contexts']);
+    $custom = !empty($form['custom']) ? render($form['custom']) : '';
     $buttons = render($form['actions']);
 
     drupal_add_tabledrag('breadcrumbs-table', 'order', 'sibling', 'path-weight');
 
-    return drupal_render_children($form) . $output . $context_placeholders . $buttons;
+    return drupal_render_children($form) . $output . $context_placeholders . $custom . $buttons;
   }
 }
 

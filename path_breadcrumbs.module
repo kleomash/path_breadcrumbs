@@ -396,6 +396,10 @@ function path_breadcrumbs_save($path_breadcrumbs) {
     'access'        => $path_breadcrumbs->access,
   );
 
+  if (!empty($path_breadcrumbs->custom)) {
+    $path_breadcrumbs->data['custom'] = $path_breadcrumbs->custom;
+  }
+
   $save_result = ctools_export_crud_save('path_breadcrumbs', $path_breadcrumbs);
 
   // FALSE means error while saving.
@@ -716,6 +720,9 @@ function path_breadcrumbs_export($path_breadcrumbs, $indent) {
     'arguments'     => $path_breadcrumbs->arguments,
     'access'        => $path_breadcrumbs->access,
   );
+  if (!empty($path_breadcrumbs->custom)) {
+    $path_breadcrumbs->data['custom'] = $path_breadcrumbs->custom;
+  }
   return ctools_export_object('path_breadcrumbs', $path_breadcrumbs, $indent);
 }
 
