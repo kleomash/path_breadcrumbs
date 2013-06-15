@@ -162,7 +162,7 @@ function path_breadcrumbs_ui_permission() {
 }
 
 /**
- * Implementats hook_theme().
+ * Implements hook_theme().
  */
 function path_breadcrumbs_ui_theme() {
   return array(
@@ -240,6 +240,7 @@ function path_breadcrumbs_ui_add_form($form, &$form_state, $show_navigation = TR
   }
 
   // Provide default submit callback for all forms.
+  $form['#validate'][] = 'path_breadcrumbs_ui_add_form_validate';
   $form['#submit'][] = 'path_breadcrumbs_ui_add_form_submit';
 
   // Attach styles to form.
@@ -252,6 +253,34 @@ function path_breadcrumbs_ui_add_form($form, &$form_state, $show_navigation = TR
   }
 
   return $form;
+}
+
+/**
+ * Validate callback for path_breadcrumbs_ui_add_form.
+ *
+ * @param $form
+ * @param $form_state
+ */
+function path_breadcrumbs_ui_add_form_validate($form, $form_state) {
+  $values = $form_state['values'];
+
+  $machine_name = '';
+
+  if (isset($form_state['storage']['machine_name'])) {
+    $machine_name = $form_state['storage']['machine_name'];
+  }
+  elseif (isset($values['machine_name'])) {
+    $machine_name = $values['machine_name'];
+  }
+
+  // Don't allow to use existing machine name for new breadcrumbs.
+  if (!form_get_errors() && $form_state['build_info']['form_id'] == 'path_breadcrumbs_ui_add_form') {
+    $path_breadcrumb = path_breadcrumbs_load_by_name($machine_name);
+    if ($path_breadcrumb) {
+      $message = t('Breadcrumb <a href="@edit_url">%name</a> with the same machine name %machine_name already exists.', array('@edit_url' => url('admin/structure/path-breadcrumbs/edit/' . $path_breadcrumb->machine_name), '%name' => $path_breadcrumb->name, '%machine_name' => $path_breadcrumb->machine_name));
+      form_set_error('', $message);
+    }
+  }
 }
 
 /**
