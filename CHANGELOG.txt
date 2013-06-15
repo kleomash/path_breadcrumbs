@@ -1,7 +1,9 @@
 
 Path breadcrumbs 7.x-3.x, xxxx-xx-xx
 ------------------------------
+#1954868 by kalabro | abautu, rosberg: Fixed %site context doesn't work.
 #1982528 by kalabro: Fixed PDOException because of ctools cache object conflicts.
+#1946760 by maximpodorov, Spleshka: Support additional custom configuration for each variant.
 
 
 Path breadcrumbs 7.x-3.0-beta2, 2013-04-14

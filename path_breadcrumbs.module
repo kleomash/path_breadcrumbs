@@ -156,15 +156,19 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
   $search[]  = '!page_title';
   $replace[] = drupal_get_title();
 
+  // Replace global %site token with ctools %token:site.
+  $search[]  = '%site';
+  $replace[] = '%token:site';
+
   // Replace module placeholders.
   $titles = str_replace($search, $replace, $titles);
   $paths  = str_replace($search, $replace, $paths);
 
   // Add custom ctools context for site.
-  $site = new ctools_context('site');
-  $site->plugin = 'site';
-  $site->keyword = 'site';
-  $contexts['site'] = $site;
+  $global_context = new ctools_context('token');
+  $global_context->plugin = 'token';
+  $global_context->keyword = 'token';
+  $contexts['token'] = $global_context;
 
   // Replace placeholders by current context values.
   $titles = ctools_context_keyword_substitute($titles, array(), $contexts);
