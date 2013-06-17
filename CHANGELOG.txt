@@ -1,6 +1,7 @@
 
 Path breadcrumbs 7.x-3.x, xxxx-xx-xx
 ------------------------------
+#2021907 by kalabro: Show contextual links for Path Breadcrumbs variant.
 #1954002 by rimen, kalabro: Fixed arguments with underscore not work in tokens. Added raw arguments to autocomplete.
 #1954868 by kalabro | abautu, rosberg: Fixed %site context doesn't work.
 #1982528 by kalabro: Fixed PDOException because of ctools cache object conflicts.

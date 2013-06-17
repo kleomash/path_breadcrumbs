@@ -106,6 +106,9 @@ function path_breadcrumbs_load_variant($path) {
         cache_set($cache_id, $build, PATH_BREADCRUMBS_CACHE_STORAGE, $cache_lifetime);
       }
 
+      // Save selected variant in static cache for using Path Breadcrumbs object in other places.
+      _path_breadcrumbs_static_cache_variant($path, $breadcrumb);
+
       return $build;
     }
 
@@ -360,8 +363,23 @@ function path_breadcrumbs_breadcrumb($variables) {
     $delimiter = variable_get('path_breadcrumbs_delimiter', '»');
     $delimiter = '<span class="delimiter">' . trim($delimiter) . '</span>';
 
+    $classes = array('breadcrumb');
+
+    // Show contextial link if it is Path Breadcrumbs variant.
+    $prefix = '';
+    $path_breadcrumbs = _path_breadcrumbs_static_cache_variant(current_path());
+    if (user_access('administer path breadcrumbs') && $path_breadcrumbs) {
+      $contextual_links = array(
+        '#type' => 'contextual_links',
+        '#contextual_links' => array('path_breadcrumbs' => array('admin/structure/path-breadcrumbs/edit', array($path_breadcrumbs->machine_name))),
+      );
+      $prefix = drupal_render($contextual_links);
+      $classes[] = 'contextual-links-region';
+    }
+
     // Build final version of breadcrumb's HTML output.
-    $output .= '<div class="breadcrumb"' . $root_property . '>' . implode(" $delimiter ", $breadcrumbs) . '</div>';
+    $output .= '<div class="' . implode(' ', $classes) . '"' . $root_property . '>' . $prefix . implode(" $delimiter ", $breadcrumbs) . '</div>';
+
     return $output;
   }
 
@@ -743,4 +761,16 @@ function path_breadcrumbs_export_list() {
     $list[$path_breadcrumbs->machine_name] = check_plain($string);
   }
   return $list;
+}
+
+/**
+ * Static per-path cache of selected Path Breadcrumbs variant.
+ */
+function _path_breadcrumbs_static_cache_variant($path, $breadcrumb = NULL) {
+  $static_cache = &drupal_static(__FUNCTION__);
+  if (empty($breadcrumb)) {
+    return !empty($static_cache[$path]) ? $static_cache[$path] : FALSE;
+  }
+
+  $static_cache[$path] = $breadcrumb;
 }
