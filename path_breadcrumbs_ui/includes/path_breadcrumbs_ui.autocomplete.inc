@@ -2,15 +2,17 @@
 
 class PathBreadcrumbsUIAutocomplete {
 
-  public static function processAutocomplete($string, $context_keywords) {
+  protected static $context_keywords = array();
+
+  public static function processAutocomplete($string, $context_keywords, $raw_keywords = array()) {
 
     // Remove selector from search string.
-    if ($string[0] == '%') {
+    if (drupal_substr($string, 0, 1) == '%') {
       $string = drupal_substr($string, 1);
     }
 
     // Apply site information to contexts.
-    $context_keywords += array('site' => 'site');
+    self::$context_keywords = $context_keywords + array('site' => 'site');
 
     // Remove the last part as it might be unfinished.
     $parts = explode(':', $string);
@@ -18,14 +20,17 @@ class PathBreadcrumbsUIAutocomplete {
     $selector = implode(':', $parts);
 
     // Wrap entity in metadata wrapper.
-    $wrapper = PathBreadcrumbsUIAutocomplete::applyDataSelector($selector, $context_keywords);
+    $wrapper = PathBreadcrumbsUIAutocomplete::applyDataSelector($selector, self::$context_keywords);
 
     $result = array();
     if ($selector && $wrapper) {
       $result = PathBreadcrumbsUIAutocomplete::matchDataSelector($wrapper, $selector . ':', 0);
     }
     elseif (!$selector) {
-      $result = PathBreadcrumbsUIAutocomplete::matchDataSelector(PathBreadcrumbsUIAutocomplete::applyCurrentVariables($context_keywords), '', 0);
+      $result = PathBreadcrumbsUIAutocomplete::matchDataSelector(PathBreadcrumbsUIAutocomplete::applyCurrentVariables(self::$context_keywords), '', 0);
+      // Add custom keywords in first autocomplete level.
+      $result += $raw_keywords;
+
     }
 
     return PathBreadcrumbsUIAutocomplete::processResultData($result, $last_part, $string);
@@ -87,7 +92,10 @@ class PathBreadcrumbsUIAutocomplete {
     $matches = array();
     foreach ($source as $name => $wrapper) {
       $info = $wrapper->info();
-      $name = str_replace('_', '-', $name);
+      // Keep underscores unchanged in context keywords.
+      if (!array_key_exists($name, self::$context_keywords)) {
+        $name = str_replace('_', '-', $name);
+      }
 
       $matches[$prefix . $name] = $info;
       if (!is_array($source) && $source instanceof EntityListWrapper) {
@@ -135,7 +143,8 @@ class PathBreadcrumbsUIAutocomplete {
         else {
           $text = check_plain($selector) . ' (' . check_plain($info['label']) . ')';
         }
-        $matches['%' . $selector] = "<div" . drupal_attributes($attributes) . ">%$text</div";
+        $selector_sign = isset($info['selector_sign']) ? $info['selector_sign'] : '%';
+        $matches[$selector_sign . $selector] = "<div" . drupal_attributes($attributes) . ">$selector_sign$text</div";
       }
     }
 
@@ -197,7 +206,9 @@ class PathBreadcrumbsUIAutocomplete {
     }
     else {
       $info = $entity_info['default'];
-      $info += entity_get_info($context_type);
+      if ($enity_info = entity_get_info($context_type)) {
+        $info += $enity_info;
+      }
     }
 
     return $info;

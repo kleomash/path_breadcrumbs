@@ -199,18 +199,33 @@ function path_breadcrumbs_ui_tokens_ajax_autocomplete($path_breadcrumbs, $string
       }
 
       // Load entity context.
-      $contexts[] = ctools_context_get_context_from_argument($argument, $keyword, TRUE);
+      $contexts[$keyword] = ctools_context_get_context_from_argument($argument, $keyword, TRUE);
     }
   }
 
   $context_keywords = array();
-  foreach ($contexts as $context) {
-    $type = array_pop($context->type);
-    $context_keywords[$context->original_argument] = $type;
+  $raw_keywords = array();
+  foreach ($contexts as $keyword => $context) {
+    if ($context && $context->type) {
+      $type = is_array($context->type) ? array_pop($context->type) : $context->type;
+      $context_keywords[$context->original_argument] = $type;
+    }
+    else {
+      $raw_keywords[$keyword] = array(
+        'label' => t('Raw argument "@arg"', array('@arg' => $keyword)),
+        'description' => $context->original_argument,
+        'selector_sign' => '!',
+      );
+    }
   }
 
+  // Default raw tokens.
+  $raw_keywords['page_title'] = array('label' => t('Current page title'), 'description' => t('Current page title'), 'selector_sign' => '!');
+  $raw_keywords['<front>'] = array('label' => t('Link to front page'), 'description' => t('Link to front page'), 'selector_sign' => '');
+  $raw_keywords['<none>'] = array('label' => t('Emply value'), 'description' => t('Emply value'), 'selector_sign' => '');
+
   // Load class for autocomplete ui.
-  $matches = PathBreadcrumbsUIAutocomplete::processAutocomplete($string, $context_keywords);
+  $matches = PathBreadcrumbsUIAutocomplete::processAutocomplete($string, $context_keywords, $raw_keywords);
 
   drupal_json_output($matches);
 }
