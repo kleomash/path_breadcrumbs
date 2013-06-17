@@ -140,6 +140,7 @@ function path_breadcrumbs_ui_edit_form_ajax_links($breadcrumb, $step) {
   $commands[] = ajax_command_replace('#path-breadcrumbs-ui-form-wrapper', render($form));
   $commands[] = ajax_command_invoke('#path-breadcrumbs-ui-menu li a', 'removeClass', array('active'));
   $commands[] = ajax_command_invoke('#path-breadcrumbs-ui-menu li a:eq(' . --$step . ')', 'addClass', array('active'));
+  $commands[] = ajax_command_prepend('#path-breadcrumbs-ui-form-wrapper', theme('status_messages'));
   return array('#type' => 'ajax', '#commands' => $commands);
 }
 
