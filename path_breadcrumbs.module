@@ -21,9 +21,19 @@ define('PATH_BREADCRUMBS_CACHE_STORAGE', 'cache_path_breadcrumbs');
  * Implements hook_page_alter().
  */
 function path_breadcrumbs_page_alter() {
+  path_breadcrumbs_set_breadcrumb();
+}
+
+/**
+ * Init Path Breadcrumbs.
+ */
+function path_breadcrumbs_set_breadcrumb($path = NULL) {
+  if (!isset($path)) {
+    $path = current_path();
+  }
 
   // See if current page has path breadcrumbs.
-  $breadcrumbs = path_breadcrumbs_load_variant(current_path());
+  $breadcrumbs = path_breadcrumbs_load_variant($path);
 
   // Set breadcrumbs for current page if it exists.
   if ($breadcrumbs) {
@@ -773,4 +783,16 @@ function _path_breadcrumbs_static_cache_variant($path, $breadcrumb = NULL) {
   }
 
   $static_cache[$path] = $breadcrumb;
+}
+
+/**
+ * Implements hook_panels_pane_content_alter().
+ * Override default 'page_breadcrumb' content.
+ */
+function path_breadcrumbs_panels_pane_content_alter(&$content, $pane, $args, $context, $renderer, $display) {
+  if ($content->type == 'page_breadcrumb') {
+    // Init Path Breadcrumbs early.
+    path_breadcrumbs_set_breadcrumb();
+    $content->content = theme('breadcrumb', array('breadcrumb' => drupal_get_breadcrumb()));
+  }
 }
