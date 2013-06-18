@@ -1,6 +1,10 @@
 
 Path breadcrumbs 7.x-3.x, xxxx-xx-xx
 ------------------------------
+
+
+Path breadcrumbs 7.x-3.0-beta3, 2013-06-19
+------------------------------
 #1958842 by kalabro | VasilyKraev, philsward, Spleshka, das-peter: Fixed Path Breadcrumbs doesn't work in Panels content type.
 #2021907 by kalabro: Show contextual links for Path Breadcrumbs variant.
 #1954002 by rimen, kalabro: Fixed arguments with underscore not work in tokens. Added raw arguments to autocomplete.
