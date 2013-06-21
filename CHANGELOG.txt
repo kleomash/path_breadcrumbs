@@ -1,6 +1,7 @@
 
 Path breadcrumbs 7.x-3.x, xxxx-xx-xx
 ------------------------------
+#2021855 by kalabro | ergow: Fixed double url encoding when using Path breadcrumbs render function.
 
 
 Path breadcrumbs 7.x-3.0-beta3, 2013-06-19

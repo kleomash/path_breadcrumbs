@@ -362,6 +362,8 @@ function path_breadcrumbs_breadcrumb($variables) {
         $title = '<span itemprop="title">' . $title . '</span>';
       }
 
+      // Decode url to prevent double encoding in l().
+      $href = rawurldecode($href);
       // Build new text or link breadcrumb.
       $new_breadcrumb = !empty($href) ? l($title, $href, $options) : $title;
 
