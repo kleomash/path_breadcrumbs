@@ -14,7 +14,7 @@ function path_breadcrumbs_i18n_i18n_string_info() {
     'title' => t('Path breadcrumbs'),
     'description' => t('Translatable path breadcrumbs titles.'),
     'format' => FALSE,
-    'list' => FALSE, // TODO (?)
+    'list' => TRUE,
   );
 
   return $groups;
@@ -32,6 +32,7 @@ function path_breadcrumbs_i18n_i18n_object_info() {
     'key' => 'machine_name',
     'class' => 'i18n_path_breadcrumbs_object',
     'load callback' => 'path_breadcrumbs_load_by_name',
+    'list callback' => 'path_breadcrumbs_load_all',
     // Mapping object fields and menu place holders.
     'placeholders' => array(
       '%path_breadcrumbs_ui_cache' => 'machine_name',
