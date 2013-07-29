@@ -332,7 +332,9 @@ function path_breadcrumbs_breadcrumb($variables) {
         }
 
         // Append additional params to base string for multilingual sites.
-        if (!empty($language->prefix)) {
+        // @note: Only core URL detection method supported.
+        $enabled_negotiation_types = variable_get("language_negotiation_language", array());
+        if (!empty($enabled_negotiation_types['locale-url']) && !empty($language->prefix)) {
           $base_string .= $language->prefix . '/';
         }
 
