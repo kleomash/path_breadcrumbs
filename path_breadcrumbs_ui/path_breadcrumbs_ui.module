@@ -719,11 +719,13 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
     $form['breadcrumbs_table'][$unique_hash]['left_value'] = array(
       '#type'          => 'textfield',
       '#default_value' => isset($breadcrumb->titles[$i]) ? $breadcrumb->titles[$i] : '',
+      '#maxlength' => 256,
     );
 
     $form['breadcrumbs_table'][$unique_hash]['right_value'] = array(
       '#type'          => 'textfield',
       '#default_value' => isset($breadcrumb->paths[$i]) ? $breadcrumb->paths[$i] : '',
+      '#maxlength' => 256,
     );
 
     $form['breadcrumbs_table'][$unique_hash]['weight'] = array(
