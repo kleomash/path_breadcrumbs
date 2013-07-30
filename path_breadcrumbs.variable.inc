@@ -93,6 +93,15 @@ function path_breadcrumbs_variable_info($options) {
     unset($variables['path_breadcrumbs_url_cleaning_method']['options']['pathauto']);
   }
 
+  $variables['path_breadcrumbs_truncate_title_length'] = array(
+    'type' => 'number',
+    'title' => t('Maximum title length', array(), $options),
+    'description' => t('An upper limit of symbols in the Path Breadcrumbs title. Title over the limit will be truncated with adding ellipsis at the end. Leave blank to disable truncating.'),
+    'default' => '',
+    'localize' => TRUE,
+    'group' => 'path_breadcrumbs',
+  );
+
   return $variables;
 }
 

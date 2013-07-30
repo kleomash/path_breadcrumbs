@@ -156,6 +156,16 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#description' => t('Symbol that separates breadcrumbs.'),
   );
 
+  $form['path_breadcrumbs_settings']['path_breadcrumbs_truncate_title_length'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximum title length'),
+    '#default_value' => variable_get('path_breadcrumbs_truncate_title_length', ''),
+    '#element_validate' => array('element_validate_integer_positive'),
+    '#size' => 3,
+    '#description' => t('An upper limit of symbols in the Path Breadcrumbs title. Title over the limit will be truncated with adding ellipsis at the end. Leave blank to disable truncating.'),
+    '#field_suffix' => '<span class="description">' . (variable_get('path_breadcrumbs_truncate_title_length', '') ? t('To disable truncating leave field blank.') : t('Now truncating is disabled.')) . '</span>',
+  );
+
   $form['path_breadcrumbs_settings']['path_breadcrumbs_rich_snippets'] = array(
     '#type' => 'select',
     '#title' => t('Rich snippets support'),
