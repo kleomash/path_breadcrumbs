@@ -123,6 +123,31 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#title' => t('Breadcrumbs settings'),
   );
 
+  $url_cleaning_method_options = array(
+    'none' => t('Disabled'),
+    'ctools' => t('CTools'),
+  );
+  $url_cleaning_method_help[] = t('CTools method: transliterate (if <a href="@url">Transliteration</a> enabled), lower case, replace whitespace with "-".', array('@url' => 'https://drupal.org/project/transliteration'));
+
+  if (module_exists('pathauto')) {
+    $url_cleaning_method_options['pathauto'] = t('Pathauto');
+    $url_cleaning_method_help[] = t('Pathauto method: clean with <a href="@url">Pathauto settings</a>.', array('@url' => url('admin/config/search/path/settings', array( 'query' => array('destination' => current_path()) ))));
+  }
+  else {
+    $url_cleaning_method_help[] = t('Pathauto method (disabled): clean with <a href="@url">Pathauto module</a>.', array('@url' => 'https://drupal.org/project/pathauto'));
+  }
+
+  $url_cleaning_method_help = '<p>' . implode('<br />', $url_cleaning_method_help) . '</p>';
+
+  $form['path_breadcrumbs_settings']['path_breadcrumbs_url_cleaning_method'] = array(
+    '#type' => 'select',
+    '#title' => t('URL path cleaning method'),
+    '#default_value' => variable_get('path_breadcrumbs_url_cleaning_method', 'none'),
+    '#options' => $url_cleaning_method_options,
+    '#description' => $url_cleaning_method_help . t('Choose the path cleaning method to be applied to URLs in Path Breadcrumbs.'),
+  );
+
+
   $form['path_breadcrumbs_settings']['path_breadcrumbs_delimiter'] = array(
     '#type' => 'textfield',
     '#title' => t('Delimiter'),

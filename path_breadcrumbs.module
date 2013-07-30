@@ -206,7 +206,8 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
 
     // Set a breadcrumb as a link or as a plain text.
     if (isset($path_breadcrumb->paths_prepared[$key]) && $path_breadcrumb->paths_prepared[$key] != '<none>') {
-      $breadcrumb[] = l($title, $path_breadcrumb->paths_prepared[$key]);
+      $path = _path_breadcrumbs_clean_url($path_breadcrumb->paths_prepared[$key]);
+      $breadcrumb[] = l($title, $path);
     }
     elseif (isset($path_breadcrumb->paths_prepared[$key]) && $path_breadcrumb->paths_prepared[$key] == '<none>') {
       $breadcrumb[] = check_plain($title);
@@ -799,4 +800,48 @@ function path_breadcrumbs_panels_pane_content_alter(&$content, $pane, $args, $co
     path_breadcrumbs_set_breadcrumb();
     $content->content = theme('breadcrumb', array('breadcrumb' => drupal_get_breadcrumb()));
   }
+}
+
+/**
+ * Helpter function to clean URLs according to Path Breadcrumbs settings.
+ */
+function _path_breadcrumbs_clean_url($url, $method = NULL) {
+  if (empty($method)) {
+    $method = variable_get('path_breadcrumbs_url_cleaning_method', 'none');
+  }
+  if ($method == 'none') {
+    return $url;
+  }
+
+  // Ignore absolute URLs.
+  if (preg_match('@^http(s?)://@i', $url)) {
+    return $url;
+  }
+
+  $ctools_cleanstring_settings = array(
+    'clean id' => 'path_breadcrumbs_url',
+    'lower case' => TRUE,
+    'transliterate' => TRUE,
+    'reduce ascii' => FALSE,
+    'separator' => '-',
+  );
+
+  $pieces = explode('/', $url);
+  $results = array();
+  foreach ($pieces as $piece) {
+    if ($method == 'ctools') {
+      ctools_include('cleanstring');
+      $results[] = ctools_cleanstring($piece, $ctools_cleanstring_settings);
+    }
+    elseif ($method == 'pathauto' && module_exists('pathauto')) {
+      module_load_include('inc', 'pathauto');
+      $results[] = pathauto_cleanstring($piece);
+    }
+    else {
+      $results[] = $piece;
+    }
+
+  }
+
+  return implode('/', $results);
 }

@@ -4,6 +4,7 @@ Path breadcrumbs 7.x-3.x, xxxx-xx-xx
 #2021855 by kalabro | ergow: Fixed double url encoding when using Path breadcrumbs render function.
 #1893878 by kalabro | Anthony Goode: Fixed Duplicated path prefix in urls when using Path breadcrumbs render function.
 #2051905 by kalabro | operations: Fixed Refreshing i18n strings deletes translated strings.
+#2033169 by kalabro: Added new option "URL path cleaning method" with CTools and Pathauto support.
 
 
 Path breadcrumbs 7.x-3.0-beta3, 2013-06-19

@@ -123,3 +123,16 @@ function hook_path_breadcrumbs_settings_form_custom_alter(&$form, $path_breadcru
 function hook_path_breadcrumbs_settings_form_submit_custom_alter(&$custom, $form_state) {
   // @todo Needs function body.
 }
+
+/**
+ * Alter CTools cleanstring settings for Path Breadcrumbs URLs.
+ * @see ctools_cleanstring() function for more info.
+ */
+function hook_ctools_cleanstring_path_breadcrumbs_url_alter(&$clean_settings) {
+  // Disable transliteration (https://drupal.org/project/transliteration).
+  $clean_settings['transliterate'] = FALSE;
+  // Allow non-ASCII symbols.
+  $clean_settings['reduce ascii'] = FALSE;
+  // Use underscore as a separator.
+  $clean_settings['separator'] = '_';
+}

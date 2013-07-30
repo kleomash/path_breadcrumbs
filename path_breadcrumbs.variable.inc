@@ -40,9 +40,9 @@ function path_breadcrumbs_variable_info($options) {
     'title' => t('Rich snippets support', array(), $options),
     'description' => t('Provides rich snippets support for breadcrumbs. It is important to build a structure of a site in the SERP.'),
     'options' => array(
-      0 => t('Disabled', array(), $options),
-      1 => t('RDFa', array(), $options),
-      2 => t('Microdata', array(), $options),
+      PATH_BREADCRUMBS_RICH_SNIPPETS_DISABLED => t('Disabled', array(), $options),
+      PATH_BREADCRUMBS_RICH_SNIPPETS_RDFA => t('RDFa', array(), $options),
+      PATH_BREADCRUMBS_RICH_SNIPPETS_MICRODATA => t('Microdata', array(), $options),
     ),
     'default' => 0,
     'localize' => TRUE,
@@ -75,6 +75,23 @@ function path_breadcrumbs_variable_info($options) {
     'localize' => TRUE,
     'group' => 'path_breadcrumbs',
   );
+
+  $variables['path_breadcrumbs_url_cleaning_method'] = array(
+    'type' => 'select',
+    'title' => t('URL path cleaning method', array(), $options),
+    'description' => t('Choose the path cleaning method to be applied when rendering Path Breadcrumbs.'),
+    'options' => array(
+      'none' => t('Disabled', array(), $options),
+      'ctools' => t('CTools', array(), $options),
+      'pathauto' => t('Pathauto', array(), $options),
+    ),
+    'default' => 'none',
+    'localize' => TRUE,
+    'group' => 'path_breadcrumbs',
+  );
+  if (!module_exists('pathauto')) {
+    unset($variables['path_breadcrumbs_url_cleaning_method']['options']['pathauto']);
+  }
 
   return $variables;
 }
