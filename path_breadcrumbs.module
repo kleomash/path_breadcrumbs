@@ -2,8 +2,10 @@
 
 /**
  * @file
- * Provide core functions for path breadcrumbs modue.
+ * Provide core functions for path breadcrumbs module.
  */
+
+require_once 'path_breadcrumbs.info.inc';
 
 /**
  * Define module constants.

@@ -264,3 +264,10 @@ function path_breadcrumbs_update_7301() {
     ->condition('type', 'module')
     ->execute();
 }
+
+/**
+ * Clear Entity API cache to register new Path Breadcrumbs taxonomy token.
+ */
+function path_breadcrumbs_update_7302() {
+  entity_property_info_cache_clear();
+}

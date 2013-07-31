@@ -7,6 +7,7 @@ Path breadcrumbs 7.x-3.x, xxxx-xx-xx
 #2033169 by kalabro: Added new option "URL path cleaning method" with CTools and Pathauto support.
 #1929110 by samhassell, VasilyKraev, kalabro: Added new option "Maximum title length" for truncating long strings.
 #1959890 by rimen, grient, kalabro: Link/title fields maxlength increased to 256.
+By kalabro: Added new "bp-join" token for hierarchical taxonomy breadcrumbs.
 
 
 Path breadcrumbs 7.x-3.0-beta3, 2013-06-19
