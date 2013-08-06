@@ -9,6 +9,7 @@ Path breadcrumbs 7.x-3.x, xxxx-xx-xx
 #1959890 by rimen, grient, kalabro: Link/title fields maxlength increased to 256.
 By kalabro: Added new "bp-join" token for hierarchical taxonomy breadcrumbs.
 #2035365 by lecler, kalabro: Fixed Translations lost after reverting path breadcrumbs.
+#2018979 by mmikitka, kalabro: Sort breadcrumbs export by natural order for better file diffing.
 
 
 Path breadcrumbs 7.x-3.0-beta3, 2013-06-19

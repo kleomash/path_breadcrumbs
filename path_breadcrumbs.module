@@ -791,6 +791,7 @@ function path_breadcrumbs_export($path_breadcrumbs, $indent) {
 function path_breadcrumbs_export_list() {
   $list = array();
   $result = path_breadcrumbs_load_all();
+  uksort($result, 'strnatcmp');
   foreach ($result as $path_breadcrumbs) {
     $string = $path_breadcrumbs->name . " (" . $path_breadcrumbs->machine_name . ")";
     $list[$path_breadcrumbs->machine_name] = check_plain($string);
