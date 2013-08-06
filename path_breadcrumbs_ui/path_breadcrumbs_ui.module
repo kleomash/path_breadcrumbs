@@ -182,7 +182,7 @@ function path_breadcrumbs_ui_theme() {
     'path_breadcrumbs_ui_add_form' => array(
       'render element' => 'form',
       'file' => 'path_breadcrumbs_ui.theme.inc',
-    )
+    ),
   );
 }
 
@@ -1168,7 +1168,7 @@ function path_breadcrumbs_ui_argument_context_form_ajax_callback($form, $form_st
         'storage' => array(
           'step' => 2,
           'machine_name' => $path_name,
-        )
+        ),
       );
 
       $form = drupal_build_form('path_breadcrumbs_ui_add_form', $add_form_state);
@@ -1215,11 +1215,11 @@ function path_breadcrumbs_ui_edit_form($form, &$form_state) {
   );
 
   $form['actions']['update'] = array(
-    '#value' => t('Update')
+    '#value' => t('Update'),
   ) + $base;
 
   $form['actions']['update_save'] = array(
-    '#value' => t('Update and Save')
+    '#value' => t('Update and Save'),
   ) + $base;
 
   $form['#submit'][] = 'path_breadcrumbs_ui_edit_form_submit';
@@ -1296,17 +1296,17 @@ function path_breadcrumbs_ui_delete_form($form, $form_state, $path_breadcrumbs) 
 
   if ($path_breadcrumbs->is_overwritten) {
     $form['message'] = array(
-      '#markup' => t('Are you sure that you want to revert %name from database?', array('%name' => $path_breadcrumbs->name))
+      '#markup' => t('Are you sure that you want to revert %name from database?', array('%name' => $path_breadcrumbs->name)),
     );
   }
   else {
     $form['message'] = array(
-      '#markup' => t('Are you sure that you want to delete %name from database?', array('%name' => $path_breadcrumbs->name))
+      '#markup' => t('Are you sure that you want to delete %name from database?', array('%name' => $path_breadcrumbs->name)),
     );
   }
 
   $form['actions'] = array(
-    '#type' => 'actions'
+    '#type' => 'actions',
   );
 
   $form['actions']['submit'] = array(

@@ -66,7 +66,7 @@ function path_breadcrumbs_ui_breadcrumbs_list($form, &$form_state) {
     $form[$path->machine_name]['actions'] = array(
       '#theme' => 'links__ctools_dropbutton',
       '#links' => $operations,
-      '#attributes' => array('class' => array('links', 'inline'))
+      '#attributes' => array('class' => array('links', 'inline')),
     );
 
     $form[$path->machine_name]['weight'] = array(
@@ -175,7 +175,7 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
       PATH_BREADCRUMBS_RICH_SNIPPETS_MICRODATA => t('Microdata'),
     ),
     '#default_value' => variable_get('path_breadcrumbs_rich_snippets', PATH_BREADCRUMBS_RICH_SNIPPETS_DISABLED),
-    '#description' => t('Provides rich snippets support for breadcrumbs. It is important to build a structure of a site in the SERP.')
+    '#description' => t('Provides rich snippets support for breadcrumbs. It is important to build a structure of a site in the SERP.'),
   );
 
   $form['path_breadcrumbs_settings']['path_breadcrumbs_hide_single_breadcrumb'] = array(
@@ -207,7 +207,7 @@ function path_breadcrumbs_ui_settings($form, $form_state) {
     '#type' => 'checkbox',
     '#title' => t('Use module breadcrumbs render function'),
     '#default_value' => variable_get('path_breadcrumbs_internal_render', 1),
-    '#description' => t("If this value checked module will replace system or theme breadcrumb render function by module's one.<br/>Note that if this checkbox is unchecked module will not be able to implement settings above.")
+    '#description' => t("If this value checked module will replace system or theme breadcrumb render function by module's one.<br/>Note that if this checkbox is unchecked module will not be able to implement settings above."),
   );
 
   // Cache settings.

@@ -44,11 +44,11 @@ function path_breadcrumbs_set_breadcrumb($path = NULL) {
 }
 
 /**
- *
  * Load path breadcrumb variant for page url.
  *
- * @param  $path
+ * @param string $path
  *   Current page url.
+ *
  * @return object
  *   Path breadcrumb that matches page url.
  */
@@ -129,7 +129,6 @@ function path_breadcrumbs_load_variant($path) {
 }
 
 /**
- *
  * Build breadcrumbs navigation from loaded path breadcrumb variant.
  *
  * @param  $path_breadcrumb
@@ -813,6 +812,7 @@ function _path_breadcrumbs_static_cache_variant($path, $breadcrumb = NULL) {
 
 /**
  * Implements hook_panels_pane_content_alter().
+ *
  * Override default 'page_breadcrumb' content.
  */
 function path_breadcrumbs_panels_pane_content_alter(&$content, $pane, $args, $context, $renderer, $display) {

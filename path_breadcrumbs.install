@@ -64,32 +64,32 @@ function path_breadcrumbs_schema() {
     ),
     'fields' => array(
       'path_id' => array(
-        'description' => t("Breadcrumb's variant unique identifier"),
+        'description' => "Breadcrumb's variant unique identifier",
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'no export' => TRUE,
       ),
       'machine_name' => array(
-        'description' => t("Breadcrumb's variant machine name"),
+        'description' => "Breadcrumb's variant machine name",
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
       ),
       'name' => array(
-        'description' => t("Breadcrumb's variant human-readable name"),
+        'description' => "Breadcrumb's variant human-readable name",
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
       ),
       'path' => array(
-        'description' => t('URL where breadcrumb should be shown'),
+        'description' => 'URL where breadcrumb should be shown',
         'type' => 'varchar',
         'length' => 256,
         'not null' => TRUE,
       ),
       'data' => array(
-        'description' => t('Serialized data of breadcrumb'),
+        'description' => 'Serialized data of breadcrumb',
         'type' => 'blob',
         'not null' => TRUE,
         'size' => 'big',
@@ -97,7 +97,7 @@ function path_breadcrumbs_schema() {
         'object default' => array(),
       ),
       'weight' => array(
-        'description' => t('Breadcrumb weight related to other breadcrumbs'),
+        'description' => 'Breadcrumb weight related to other breadcrumbs',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,

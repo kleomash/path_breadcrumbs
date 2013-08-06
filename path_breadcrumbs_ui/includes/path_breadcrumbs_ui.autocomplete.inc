@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Path breadcrumbs UI autocomplete.
+ */
+
 class PathBreadcrumbsUIAutocomplete {
 
   protected static $context_keywords = array();
@@ -233,7 +238,7 @@ class PathBreadcrumbsUIAutocomplete {
 
     // Add default property alter for other entities.
     $vars['default'] = array(
-      'property info alter' => array('PathBreadcrumbsUIAutocomplete', 'processPropertyInfo')
+      'property info alter' => array('PathBreadcrumbsUIAutocomplete', 'processPropertyInfo'),
     );
 
     return $vars;

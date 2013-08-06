@@ -47,7 +47,7 @@ function path_breadcrumbs_i18n_i18n_object_info() {
       'type' => 'path_breadcrumbs',
       'properties' => array(),
       'translate path' => 'admin/structure/path-breadcrumbs/edit/%path_breadcrumbs_ui_cache/translate/%i18n_language',
-    )
+    ),
   );
 
   return $info;
@@ -111,7 +111,7 @@ function path_breadcrumbs_i18n_form_path_breadcrumbs_ui_breadcrumbs_list_alter(&
  * Load all translatable path breadcrumbs from database and code.
  *
  * @return array
- *    Array of path_breadcrumbs objects.
+ *   Array of path_breadcrumbs objects.
  */
 function path_breadcrumbs_i18n_load_all() {
   $path_breadcrumbs = path_breadcrumbs_load_all();
