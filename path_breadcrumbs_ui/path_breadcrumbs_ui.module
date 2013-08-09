@@ -11,7 +11,7 @@
 function path_breadcrumbs_ui_menu() {
 
   $items['admin/structure/path-breadcrumbs'] = array(
-    'title' => 'Path breadcrumbs',
+    'title' => 'Path Breadcrumbs',
     'description' => 'Manage breadcrumbs for your site\'s pages.',
     'access arguments' => array('administer path breadcrumbs'),
     'page callback' => 'drupal_get_form',
@@ -20,14 +20,14 @@ function path_breadcrumbs_ui_menu() {
   );
 
   $items['admin/structure/path-breadcrumbs/list'] = array(
-    'title' => 'Path breadcrumbs list',
+    'title' => 'Path Breadcrumbs list',
     'file' => 'path_breadcrumbs_ui.admin.inc',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
 
   $items['admin/structure/path-breadcrumbs/settings'] = array(
-    'title' => 'Path breadcrumbs settings',
+    'title' => 'Path Breadcrumbs settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('path_breadcrumbs_ui_settings'),
     'access arguments' => array('administer path breadcrumbs'),
@@ -156,7 +156,7 @@ function path_breadcrumbs_ui_menu() {
 function path_breadcrumbs_ui_permission() {
   return array(
     'administer path breadcrumbs' => array(
-      'title' => t('Administer Path breadcrumbs'),
+      'title' => t('Administer Path Breadcrumbs'),
       'description' => t('Allows to set or delete path breadcrumbs'),
     ),
   );
@@ -681,7 +681,7 @@ function _path_breadcrumbs_ui_form_step_breadcrumbs_settings(&$form, &$form_stat
     $form['translatable']['#disabled'] = TRUE;
     $form['translatable']['#description'] = t(
       'You have to enable <a href="@modules_url">@module_name</a> module if you need translatable breadcrumbs.',
-      array('@module_name' => 'Path breadcrumbs translation', '@modules_url' => url('admin/modules')));
+      array('@module_name' => 'Path Breadcrumbs translation', '@modules_url' => url('admin/modules')));
   }
   else {
     $form['translatable']['#description'] = t('Every breadcrumb will be available for translation.');

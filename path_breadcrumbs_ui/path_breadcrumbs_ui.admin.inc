@@ -110,11 +110,11 @@ function path_breadcrumbs_ui_breadcrumbs_list_submit($form, &$form_state) {
     }
   }
 
-  drupal_set_message(t('Path breadcrumbs was updated.'));
+  drupal_set_message(t('Path Breadcrumbs was updated.'));
 }
 
 /**
- * Path breadcrumbs settings form.
+ * Path Breadcrumbs settings form.
  */
 function path_breadcrumbs_ui_settings($form, $form_state) {
 

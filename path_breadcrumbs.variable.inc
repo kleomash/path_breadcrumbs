@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Variable integration for Path breadcrumbs module.
+ * Variable integration for Path Breadcrumbs module.
  */
 
 /**
@@ -111,8 +111,8 @@ function path_breadcrumbs_variable_info($options) {
 function path_breadcrumbs_variable_group_info() {
 
   $groups['path_breadcrumbs'] = array(
-    'title' => t('Path breadcrumbs'),
-    'description' => t('Variables for Path breadcrumbs configuration.'),
+    'title' => t('Path Breadcrumbs'),
+    'description' => t('Variables for Path Breadcrumbs configuration.'),
     'access' => 'administer path breadcrumbs',
     'path' => array('admin/structure/path-breadcrumbs/settings'),
   );
