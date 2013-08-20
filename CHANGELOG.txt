@@ -2,6 +2,7 @@
 Path Breadcrumbs 7.x-3.x, xxxx-xx-xx
 ------------------------------
 #1976008 by klonos, Spleshka, kalabro: Renamed "Path breadcrumbs" to "Path Breadcrumbs".
+by kalabro: Converted ":parent:" token from list to single item in UI autocomplete.
 
 
 Path Breadcrumbs 7.x-3.0-beta4, 2013-08-06
