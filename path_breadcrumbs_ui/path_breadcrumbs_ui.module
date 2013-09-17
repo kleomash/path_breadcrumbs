@@ -469,15 +469,15 @@ function _path_breadcrumbs_ui_form_step_basic_settings_validate(&$form, &$form_s
  */
 function _path_breadcrumbs_ui_form_step_basic_settings_submit($form, &$form_state) {
 
+  $arguments = array();
+  // Load breadcrumb from the cache.
+  $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
+  if (empty($breadcrumb)) {
+    return;
+  }
+
   // Check if argument matches all keywords.
   if (!empty($form_state['values']['keywords'])) {
-
-    // Load breadcrumb from the cache.
-    $breadcrumb = path_breadcrumbs_object_cache_get($form_state['storage']['machine_name']);
-    if (empty($breadcrumb)) {
-      return;
-    }
-
     $arguments = array();
     foreach ($form_state['values']['keywords'] as $keyword => $position) {
       // Ensure that keywords were not changed after path update.
@@ -487,9 +487,10 @@ function _path_breadcrumbs_ui_form_step_basic_settings_submit($form, &$form_stat
       // Save keyword position.
       $arguments[$keyword]['position'] = $position['position'];
     }
-    $breadcrumb->arguments = $arguments;
-    path_breadcrumbs_object_cache_set($form_state['storage']['machine_name'], $breadcrumb);
   }
+
+  $breadcrumb->arguments = $arguments;
+  path_breadcrumbs_object_cache_set($form_state['storage']['machine_name'], $breadcrumb);
 }
 
 /**

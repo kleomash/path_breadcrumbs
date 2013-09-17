@@ -442,6 +442,14 @@ function path_breadcrumbs_save($path_breadcrumbs) {
     $path_breadcrumbs->access = array();
   }
 
+  // Set defaults.
+  if (!isset($path_breadcrumbs->arguments)) {
+    $path_breadcrumbs->arguments = array();
+  }
+  if (!isset($path_breadcrumbs->export_type)) {
+    $path_breadcrumbs->export_type = NULL;
+  }
+
   // Ctools will serialize data itself.
   $path_breadcrumbs->data = array(
     'titles'        => $path_breadcrumbs->titles,
