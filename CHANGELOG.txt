@@ -4,6 +4,7 @@ Path Breadcrumbs 7.x-3.x, xxxx-xx-xx
 #1976008 by klonos, Spleshka, kalabro: Renamed "Path breadcrumbs" to "Path Breadcrumbs".
 by kalabro: Converted ":parent:" token from list to single item in UI autocomplete.
 #2089979 by maximpodorov, kalabro: Fixed multiple PHP "Undefined property" Notices.
+#2095631 by oskar_calvo, kalabro: Fixed path breadcrumbs cache doesn't work with translation.
 
 
 Path Breadcrumbs 7.x-3.0-beta4, 2013-08-06

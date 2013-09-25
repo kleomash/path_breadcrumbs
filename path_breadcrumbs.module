@@ -35,24 +35,29 @@ function path_breadcrumbs_set_breadcrumb($path = NULL) {
   }
 
   // See if current page has path breadcrumbs.
-  $breadcrumbs = path_breadcrumbs_load_variant($path);
+  $path_breadcrumbs_data = path_breadcrumbs_load_variant($path);
 
   // Set breadcrumbs for current page if it exists.
-  if ($breadcrumbs) {
-    drupal_set_breadcrumb($breadcrumbs);
+  if ($path_breadcrumbs_data && isset($path_breadcrumbs_data->build)) {
+    drupal_set_breadcrumb($path_breadcrumbs_data->build);
   }
 }
 
 /**
- * Load path breadcrumb variant for page url.
+ * Load and build path breadcrumb variant for page url.
+ * Results are cached.
  *
  * @param string $path
  *   Current page url.
  *
  * @return object
- *   Path breadcrumb that matches page url.
+ *   Path breadcrumb object that matches page url.
+ *   Members:
+ *    - variant: raw Path Breadcrumbs variant;
+ *    - build: built Path Breadcrumbs array ready for drupal_set_breadcrumb().
  */
 function path_breadcrumbs_load_variant($path) {
+  global $language;
 
   if (empty($path)) {
     return FALSE;
@@ -61,14 +66,15 @@ function path_breadcrumbs_load_variant($path) {
   // See if user enabled cache for breadcrumbs.
   $cache_enabled = variable_get('path_breadcrumbs_cache_enabled', FALSE);
   if ($cache_enabled) {
-
     // Trying to load breadcrumb from cache.
-    $cache_id = __FUNCTION__ . ':' . $path;
+    $cache_id = __FUNCTION__ . ':' . $path . ':' . $language->language;
     $cache = cache_get($cache_id, PATH_BREADCRUMBS_CACHE_STORAGE);
     if (!empty($cache->data)) {
       return $cache->data;
     }
   }
+
+  $path_breadcrumbs_data = new stdClass;
 
   // Select all variants matching current path.
   $variants = path_breadcrumbs_load_by_path($path);
@@ -103,8 +109,10 @@ function path_breadcrumbs_load_variant($path) {
         }
       }
 
+      // Appropriate variant found.
+      $path_breadcrumbs_data->variant = $breadcrumb;
       // Build suitable breadcrumb variant.
-      $build = _path_breadcrumbs_build_breadcrumbs($breadcrumb, $contexts);
+      $path_breadcrumbs_data->build = _path_breadcrumbs_build_breadcrumbs($breadcrumb, $contexts);
 
       // Save data in cache and return it.
       if ($cache_enabled) {
@@ -115,13 +123,10 @@ function path_breadcrumbs_load_variant($path) {
           $cache_lifetime += REQUEST_TIME;
         }
 
-        cache_set($cache_id, $build, PATH_BREADCRUMBS_CACHE_STORAGE, $cache_lifetime);
+        cache_set($cache_id, $path_breadcrumbs_data, PATH_BREADCRUMBS_CACHE_STORAGE, $cache_lifetime);
       }
 
-      // Save selected variant in static cache for using Path Breadcrumbs object in other places.
-      _path_breadcrumbs_static_cache_variant($path, $breadcrumb);
-
-      return $build;
+      return $path_breadcrumbs_data;
     }
 
   }
@@ -401,11 +406,11 @@ function path_breadcrumbs_breadcrumb($variables) {
 
     // Show contextial link if it is Path Breadcrumbs variant.
     $prefix = '';
-    $path_breadcrumbs = _path_breadcrumbs_static_cache_variant(current_path());
-    if (user_access('administer path breadcrumbs') && $path_breadcrumbs) {
+    $path_breadcrumbs_data = path_breadcrumbs_load_variant(current_path());
+    if (user_access('administer path breadcrumbs') && $path_breadcrumbs_data && isset($path_breadcrumbs_data->variant)) {
       $contextual_links = array(
         '#type' => 'contextual_links',
-        '#contextual_links' => array('path_breadcrumbs' => array('admin/structure/path-breadcrumbs/edit', array($path_breadcrumbs->machine_name))),
+        '#contextual_links' => array('path_breadcrumbs' => array('admin/structure/path-breadcrumbs/edit', array($path_breadcrumbs_data->variant->machine_name))),
       );
       $prefix = drupal_render($contextual_links);
       $classes[] = 'contextual-links-region';
