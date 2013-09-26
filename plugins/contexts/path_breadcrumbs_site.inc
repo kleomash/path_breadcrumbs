@@ -10,9 +10,10 @@
 $plugin = array(
   'title' => t('Site'),
   'description' => t('A site object.'),
+  'context' => 'path_breadcrumbs_ctools_context_create_context',
   'keyword' => 'site',
   'context name' => 'site',
-  'convert' => 'ctools_context_pb_site_convert',
+  'convert' => 'path_breadcrumbs_ctools_context_site_convert',
 
   // This context is deprecated and should not be usable in the UI.
   'no ui' => TRUE,
@@ -20,9 +21,20 @@ $plugin = array(
 );
 
 /**
+ * Create a context from manual configuration.
+ */
+function path_breadcrumbs_ctools_context_create_context($empty, $data = NULL, $conf = FALSE) {
+  $context = new ctools_context('path_breadcrumbs_site');
+  $context->plugin = 'path_breadcrumbs_site';
+  $context->keyword = 'site';
+
+  return $context;
+}
+
+/**
  * Convert a context into a string.
  */
-function ctools_context_pb_site_convert($context, $type) {
+function path_breadcrumbs_ctools_context_site_convert($context, $type) {
   $values = token_generate('site', array($type => $type));
   if (isset($values[$type])) {
     return $values[$type];
