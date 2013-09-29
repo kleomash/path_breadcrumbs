@@ -6,6 +6,7 @@ by kalabro: Converted ":parent:" token from list to single item in UI autocomple
 #2089979 by maximpodorov, kalabro: Fixed multiple PHP "Undefined property" Notices.
 #2095631 by oskar_calvo, kalabro: Fixed path breadcrumbs cache doesn't work with translation.
 #1954868 by kalabro | abautu, rosberg: Reimplemented and fixed %site context.
+by kalabro: Added new access plugins: "Taxonomy: term has children" and "Taxonomy: term depth".
 
 
 Path Breadcrumbs 7.x-3.0-beta4, 2013-08-06

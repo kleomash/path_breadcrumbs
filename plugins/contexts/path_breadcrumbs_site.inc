@@ -2,7 +2,6 @@
 
 /**
  * @file
- *
  * Plugin to provide a site context. A site context is a site wrapped in a
  * context object that can be utilized by anything that accepts contexts.
  */
