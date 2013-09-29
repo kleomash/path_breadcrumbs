@@ -7,6 +7,7 @@ by kalabro: Converted ":parent:" token from list to single item in UI autocomple
 #2095631 by oskar_calvo, kalabro: Fixed path breadcrumbs cache doesn't work with translation.
 #1954868 by kalabro | abautu, rosberg: Reimplemented and fixed %site context.
 by kalabro: Added new access plugins: "Taxonomy: term has children" and "Taxonomy: term depth".
+#2067579 by adamzimmermann, kalabro: Fixed External URLs don't work when using Path Breadcrumbs render function.
 
 
 Path Breadcrumbs 7.x-3.0-beta4, 2013-08-06

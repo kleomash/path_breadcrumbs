@@ -349,7 +349,7 @@ function path_breadcrumbs_breadcrumb($variables) {
         }
 
         // Means that this is href to the frontpage.
-        if (drupal_strlen($base_string) > drupal_strlen($matches[1])) {
+        if ($matches[1] == '' || $matches[1] == '/') {
           $href = '';
         }
         // All hrefs exept frontpage.
