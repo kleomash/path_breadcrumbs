@@ -345,16 +345,16 @@ function path_breadcrumbs_breadcrumb($variables) {
         // @note: Only core URL detection method supported.
         $enabled_negotiation_types = variable_get("language_negotiation_language", array());
         if (!empty($enabled_negotiation_types['locale-url']) && !empty($language->prefix)) {
-          $base_string .= $language->prefix . '/';
+          $base_string .= $language->prefix;
         }
 
         // Means that this is href to the frontpage.
-        if ($matches[1] == '' || $matches[1] == '/') {
+        if ($matches[1] == $base_string || $matches[1] == '' || $matches[1] == '/') {
           $href = '';
         }
         // All hrefs exept frontpage.
-        elseif (stripos($matches[1], $base_string) === 0) {
-          $href = drupal_substr($matches[1], drupal_strlen($base_string));
+        elseif (stripos($matches[1], "$base_string/") === 0) {
+          $href = drupal_substr($matches[1], drupal_strlen("$base_string/"));
         }
         // Other cases.
         else {
