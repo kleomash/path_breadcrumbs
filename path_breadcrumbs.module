@@ -252,8 +252,12 @@ function path_breadcrumbs_flush_caches() {
  *   Drupal theme registry that could be changed.
  */
 function path_breadcrumbs_theme_registry_alter(&$theme_registry) {
+  global $theme_key;
+
   $internal_render = variable_get('path_breadcrumbs_internal_render', 1);
-  if ($internal_render) {
+  $themes = variable_get('path_breadcrumbs_internal_render_themes', array());
+
+  if ($internal_render && (empty($themes) || in_array($theme_key, $themes))) {
     $theme_registry['breadcrumb']['theme path'] = drupal_get_path('module', 'path_breadcrumbs');
     $theme_registry['breadcrumb']['function'] = 'path_breadcrumbs_breadcrumb';
   }
@@ -871,4 +875,25 @@ function _path_breadcrumbs_clean_url($url, $method = NULL) {
   }
 
   return implode('/', $results);
+}
+
+/**
+ * Options callback for 'path_breadcrumbs_internal_render_themes' setting.
+ */
+function _path_breadcrumbs_themes_option_list() {
+  $result = array();
+  $admin_theme = variable_get('admin_theme');
+
+  foreach (list_themes() as $theme) {
+    $result[$theme->name] = $theme->info['name'];
+    if ($theme->status) {
+      $result[$theme->name] = '<strong title="' . t('This theme is enabled') .'">' . $result[$theme->name] . '</strong>';
+    }
+
+    if ($theme->name == $admin_theme) {
+      $result[$theme->name] = $theme->info['name'] . ' (<em>' . t('Administration theme') . '</em>)';
+    }
+  }
+
+  return $result;
 }
