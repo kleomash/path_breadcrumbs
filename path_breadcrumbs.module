@@ -44,8 +44,7 @@ function path_breadcrumbs_set_breadcrumb($path = NULL) {
 }
 
 /**
- * Load and build path breadcrumb variant for page url.
- * Results are cached.
+ * Load and build path breadcrumb variant for page url. Results are cached.
  *
  * @param string $path
  *   Current page url.
@@ -74,7 +73,7 @@ function path_breadcrumbs_load_variant($path) {
     }
   }
 
-  $path_breadcrumbs_data = new stdClass;
+  $path_breadcrumbs_data = new stdClass();
 
   // Select all variants matching current path.
   $variants = path_breadcrumbs_load_by_path($path);
@@ -136,10 +135,11 @@ function path_breadcrumbs_load_variant($path) {
 /**
  * Build breadcrumbs navigation from loaded path breadcrumb variant.
  *
- * @param  $path_breadcrumb
+ * @param object $path_breadcrumb
  *   Object with path breadcrumb variant loaded from database.
- * @param $contexts
+ * @param array $contexts
  *   Ctools contexts from current URL.
+ *
  * @return array
  *   Array with breadcrumbs navigation.
  */
@@ -247,9 +247,6 @@ function path_breadcrumbs_flush_caches() {
 
 /**
  * Implements hook_theme_registry_alter().
- *
- * @param $theme_registry
- *   Drupal theme registry that could be changed.
  */
 function path_breadcrumbs_theme_registry_alter(&$theme_registry) {
   global $theme_key;
@@ -266,8 +263,9 @@ function path_breadcrumbs_theme_registry_alter(&$theme_registry) {
 /**
  * Override default theme_breadcrumb().
  *
- * @param $variables
+ * @param array $variables
  *   Contains array with breadcrumbs.
+ *
  * @return bool|string
  *   Rendered breadcrumbs or FALSE for no breadcrumbs.
  */
@@ -429,8 +427,9 @@ function path_breadcrumbs_breadcrumb($variables) {
 /**
  * Save path breadcrumb.
  *
- * @param  $path_breadcrumbs
+ * @param object $path_breadcrumbs
  *   Object with path breadcrumb data.
+ *
  * @return int
  *   ID of inserted/updated path breadcrumb.
  */
@@ -491,9 +490,8 @@ function path_breadcrumbs_save($path_breadcrumbs) {
 /**
  * Delete path breadcrumb.
  *
- * @param  $name
+ * @param string $name
  *   Path breadcrumb's name.
- * @return void
  */
 function path_breadcrumbs_delete($name) {
   $path_breadcrumbs = path_breadcrumbs_load_by_name($name);
@@ -510,11 +508,13 @@ function path_breadcrumbs_delete($name) {
 }
 
 /**
- * Prepare raw object from Ctools to normal path_breadcrumbs object
+ * Prepare raw object from Ctools to normal path_breadcrumbs object.
  *
- * @param $path_breadcrumbs_raw
- *    Object loaded from database or ctools_export_load_object().
- * @return object $path_breadcrumbs.
+ * @param object $path_breadcrumbs_raw
+ *   Object loaded from database or ctools_export_load_object().
+ *
+ * @return object
+ *   $path_breadcrumbs prepared object.
  */
 function path_breadcrumbs_load_prepare($path_breadcrumbs_raw) {
   // Merge breadcrumb data with parent for more flattening structure.
@@ -529,10 +529,11 @@ function path_breadcrumbs_load_prepare($path_breadcrumbs_raw) {
 /**
  * Load path breadcrumbs by ID.
  *
- * @param  $path_id
- *   ID of path breadcrumb that should be loaded
+ * @param int $path_id
+ *   ID of path breadcrumb that should be loaded.
+ *
  * @return object
- *   Loaded path breadcrumb
+ *   Loaded path breadcrumb.
  */
 function path_breadcrumbs_load($path_id) {
   // Cache it because Ctools cache is not helpful for 'conditions' loading.
@@ -555,8 +556,9 @@ function path_breadcrumbs_load($path_id) {
 /**
  * Load path breadcrumb by name.
  *
- * @param  $name
+ * @param string $name
  *   Path breadcrumb's name.
+ *
  * @return object
  *   Object with path breadcrumb.
  */
@@ -575,8 +577,10 @@ function path_breadcrumbs_load_by_name($name) {
 /**
  * Load multiple objects by names.
  *
- * @param $names
+ * @param array $names
+ *
  * @return array
+ *   Array of path breadcrumbs objects.
  */
 function path_breadcrumbs_load_by_name_multiple($names) {
   ctools_include('export');
@@ -594,7 +598,7 @@ function path_breadcrumbs_load_by_name_multiple($names) {
  * Load all path breadcrumbs from database and code.
  *
  * @return array
- *    Array of path_breadcrumbs objects.
+ *   Array of path_breadcrumbs objects.
  */
 function path_breadcrumbs_load_all() {
   $data = &drupal_static(__FUNCTION__);
@@ -614,6 +618,7 @@ function path_breadcrumbs_load_all() {
  *
  * @param string $path
  *    Current page path.
+ *
  * @return array
  *    Array of path_breadcrumbs sorted by weight.
  */
@@ -917,7 +922,7 @@ function _path_breadcrumbs_themes_option_list() {
   foreach (list_themes() as $theme) {
     $result[$theme->name] = $theme->info['name'];
     if ($theme->status) {
-      $result[$theme->name] = '<strong title="' . t('This theme is enabled') .'">' . $result[$theme->name] . '</strong>';
+      $result[$theme->name] = '<strong title="' . t('This theme is enabled') . '">' . $result[$theme->name] . '</strong>';
     }
 
     if ($theme->name == $admin_theme) {

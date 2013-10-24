@@ -118,7 +118,7 @@ function path_breadcrumbs_ui_breadcrumbs_list_submit($form, &$form_state) {
  */
 function path_breadcrumbs_ui_settings($form, $form_state) {
 
-  // Theme settings
+  // Theme settings.
   $form['path_breadcrumbs_theme'] = array(
     '#type' => 'fieldset',
     '#title' => t('Theming settings'),
