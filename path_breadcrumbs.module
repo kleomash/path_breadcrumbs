@@ -215,7 +215,7 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
 
     // Set a breadcrumb as a link or as a plain text.
     if (isset($path_breadcrumb->paths_prepared[$key]) && $path_breadcrumb->paths_prepared[$key] != '<none>') {
-      $path = _path_breadcrumbs_clean_url($path_breadcrumb->paths_prepared[$key]);
+      $path = _path_breadcrumbs_clean_url($path_breadcrumb->paths_prepared[$key], $options);
       $breadcrumb[] = l($title, $path, $options);
     }
     elseif (isset($path_breadcrumb->paths_prepared[$key]) && $path_breadcrumb->paths_prepared[$key] == '<none>') {
@@ -388,6 +388,9 @@ function path_breadcrumbs_breadcrumb($variables) {
 
       // Decode url to prevent double encoding in l().
       $href = rawurldecode($href);
+      // Move query params from $href to $options.
+      $href = _path_breadcrumbs_clean_url($href, $options, 'none');
+
       // Build new text or link breadcrumb.
       $new_breadcrumb = !empty($href) ? l($title, $href, $options) : $title;
 
@@ -834,19 +837,42 @@ function path_breadcrumbs_panels_pane_content_alter(&$content, $pane, $args, $co
 }
 
 /**
- * Helpter function to clean URLs according to Path Breadcrumbs settings.
+ * Helper function to clean URLs according to Path Breadcrumbs settings.
+ *
+ * @param $url URL to clean.
+ * @param &$options array of options for l() function.
+ *   Function can overwrite 'query' and 'fragment' keys with data from $url.
+ * @param $method One of supported methods: 'none', 'ctools', 'pathauto'.
+ *
+ * @return string Cleared URL.
  */
-function _path_breadcrumbs_clean_url($url, $method = NULL) {
+function _path_breadcrumbs_clean_url($url, &$options, $method = NULL) {
+  $url_short = $url;
+  $url_parts = parse_url($url);
+
+  // Remove #hash from URL.
+  if (!empty($url_parts['fragment'])) {
+    $options['fragment'] = $url_parts['fragment'];
+    list($url_short, ) = explode('#', $url_short, 2);
+  }
+  // Remove query string from URL.
+  if (!empty($url_parts['query'])) {
+    list($url_short, ) = explode('?', $url_short, 2);
+    parse_str($url_parts['query'], $query);
+    $options['query'] = isset($options['query']) ? $options['query'] : array();
+    $options['query'] += $query;
+  }
+
   if (empty($method)) {
     $method = variable_get('path_breadcrumbs_url_cleaning_method', 'none');
   }
   if ($method == 'none') {
-    return $url;
+    return $url_short;
   }
 
   // Ignore absolute URLs.
-  if (preg_match('@^http(s?)://@i', $url)) {
-    return $url;
+  if (preg_match('@^http(s?)://@i', $url_short)) {
+    return $url_short;
   }
 
   $ctools_cleanstring_settings = array(
@@ -857,21 +883,25 @@ function _path_breadcrumbs_clean_url($url, $method = NULL) {
     'separator' => '-',
   );
 
-  $pieces = explode('/', $url);
+  $pieces = explode('/', $url_short);
   $results = array();
-  foreach ($pieces as $piece) {
-    if ($method == 'ctools') {
-      ctools_include('cleanstring');
+
+  if ($method == 'ctools') {
+    ctools_include('cleanstring');
+
+    foreach ($pieces as $piece) {
       $results[] = ctools_cleanstring($piece, $ctools_cleanstring_settings);
     }
-    elseif ($method == 'pathauto' && module_exists('pathauto')) {
-      module_load_include('inc', 'pathauto');
+  }
+  elseif ($method == 'pathauto' && module_exists('pathauto')) {
+    module_load_include('inc', 'pathauto');
+
+    foreach ($pieces as $piece) {
       $results[] = pathauto_cleanstring($piece);
     }
-    else {
-      $results[] = $piece;
-    }
-
+  }
+  else {
+    $results = $pieces;
   }
 
   return implode('/', $results);
