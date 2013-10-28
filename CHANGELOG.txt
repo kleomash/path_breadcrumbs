@@ -1,6 +1,7 @@
 Path Breadcrumbs 7.x-3.x, xxxx-xx-xx
 ------------------------------
 #2122051 by kalabro | zniki.ru: Fixed Machine name validation error when clone PB item.
+#2118329 by kalabro | klim_: Improved URL query support (?&=).
 
 
 Path Breadcrumbs 7.x-3.0-beta6, 2013-10-25
