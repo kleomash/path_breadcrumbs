@@ -5,6 +5,7 @@ Path Breadcrumbs 7.x-3.x, xxxx-xx-xx
 #2066223 by sylus, OnkelTem: Add partial jquery_update-dev support.
 #2153755 by bkosborne: Fixed Variable "path_breadcrumbs_decode_entities" not deleted on uninstall.
 #2149763 by kalabro, manuelBS | Spleshka: Added 'pb-join' token for node menus, current page menu item and Book hierarchy.
+#2160011 by kalabro | VasilyKraev: Added "Configuration Management" module support.
 
 
 Path Breadcrumbs 7.x-3.0-beta6, 2013-10-25

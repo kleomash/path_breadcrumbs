@@ -789,16 +789,18 @@ function _path_breadcrumbs_sort_weight($a, $b) {
  */
 function path_breadcrumbs_export($path_breadcrumbs, $indent) {
   // Structure object according to schema.
-  $path_breadcrumbs->data = array(
-    'titles'        => $path_breadcrumbs->titles,
-    'paths'         => $path_breadcrumbs->paths,
-    'home'          => $path_breadcrumbs->home,
-    'translatable'  => $path_breadcrumbs->translatable,
-    'arguments'     => $path_breadcrumbs->arguments,
-    'access'        => $path_breadcrumbs->access,
-  );
-  if (!empty($path_breadcrumbs->custom)) {
-    $path_breadcrumbs->data['custom'] = $path_breadcrumbs->custom;
+  if (empty($path_breadcrumbs->data)) {
+    $path_breadcrumbs->data = array(
+      'titles'        => $path_breadcrumbs->titles,
+      'paths'         => $path_breadcrumbs->paths,
+      'home'          => $path_breadcrumbs->home,
+      'translatable'  => $path_breadcrumbs->translatable,
+      'arguments'     => $path_breadcrumbs->arguments,
+      'access'        => $path_breadcrumbs->access,
+    );
+    if (!empty($path_breadcrumbs->custom)) {
+      $path_breadcrumbs->data['custom'] = $path_breadcrumbs->custom;
+    }
   }
   return ctools_export_object('path_breadcrumbs', $path_breadcrumbs, $indent);
 }
