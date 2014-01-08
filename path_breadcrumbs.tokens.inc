@@ -41,9 +41,11 @@ function path_breadcrumbs_tokens($type, $tokens, array $data = array(), array $o
             case 'mlid':
               $replacements[$original] = $data['menu-link']['mlid'];
               break;
+
             case 'title':
-              $replacements[$original] = check_plain($data['menu-link']['title']);
+              $replacements[$original] = check_plain($data['menu-link']['link_title']);
               break;
+
             case 'url':
               $replacements[$original] = $data['menu-link']['href'];
               break;
@@ -96,7 +98,7 @@ function _path_breadcrumbs_menu_token_generate($tokens, $data, $options) {
               if (($translation_object = i18n_translation_object('menu_link', $parent_menu_item)) &&
                 ($translated_item = $translation_object->get_item($langcode))
               ) {
-                 $parent_menu_item = $translated_item;
+                $parent_menu_item = $translated_item;
               }
 
             }
@@ -108,8 +110,8 @@ function _path_breadcrumbs_menu_token_generate($tokens, $data, $options) {
             }
           }
 
-          $pb_menu_data['name'][] =  $parent_menu_item['link_title'];
-          $pb_menu_data['url'][] =  $parent_menu_item['link_path'];
+          $pb_menu_data['name'][] = $parent_menu_item['link_title'];
+          $pb_menu_data['url'][] = $parent_menu_item['link_path'];
         }
       }
 
