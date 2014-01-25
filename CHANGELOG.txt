@@ -1,5 +1,7 @@
 Path Breadcrumbs 7.x-3.x, xxxx-xx-xx
 ------------------------------
+#2178565 by kalabro | Fina Bluma: Fixed warnings when using Bootstrap theme.
+
 
 Path Breadcrumbs 7.x-3.0-beta7, 2014-01-08
 #2122051 by kalabro | zniki.ru: Fixed Machine name validation error when clone PB item.
