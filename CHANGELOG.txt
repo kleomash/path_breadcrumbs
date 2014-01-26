@@ -2,6 +2,7 @@ Path Breadcrumbs 7.x-3.x, xxxx-xx-xx
 ------------------------------
 #2178565 by kalabro | Fina Bluma: Fixed warnings when using Bootstrap theme.
 #2175751 by kalabro | VasilyKraev: Fixed strict warning when using RESTWS module.
+#2171769 by kalabro | FortEZ: Fixed Profile2 token not replaced from Ctools User context.
 
 
 Path Breadcrumbs 7.x-3.0-beta7, 2014-01-08

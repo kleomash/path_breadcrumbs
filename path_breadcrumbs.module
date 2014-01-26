@@ -698,6 +698,11 @@ function path_breadcrumbs_get_contexts_from_arguments($arguments, $empty = FALSE
           $context->keyword = $keyword;
           $context->identifier = $argument['identifier'];
           $contexts[$keyword] = $context;
+
+          // Override Ctools User plugin with improved PB version.
+          if ($context->plugin == 'user') {
+            $context->plugin = 'path_breadcrumbs_user';
+          }
         }
         else {
           $contexts['broken_context'] = $keyword;
