@@ -1,4 +1,7 @@
 Path Breadcrumbs 7.x-3.x, xxxx-xx-xx
+
+
+Path Breadcrumbs 7.x-3.0-rc1, 2014-01-26
 ------------------------------
 #2178565 by kalabro | Fina Bluma: Fixed warnings when using Bootstrap theme.
 #2175751 by kalabro | VasilyKraev: Fixed strict warning when using RESTWS module.
