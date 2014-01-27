@@ -1,4 +1,5 @@
 Path Breadcrumbs 7.x-3.x, xxxx-xx-xx
+#2178169 by kalabro | audealexandre: Added *:pb-join:none token for empty strings.
 
 
 Path Breadcrumbs 7.x-3.0-rc1, 2014-01-26
