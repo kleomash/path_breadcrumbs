@@ -1,5 +1,6 @@
 Path Breadcrumbs 7.x-3.x, xxxx-xx-xx
 #2178169 by kalabro | audealexandre: Added *:pb-join:none token for empty strings.
+#2184389 by maximpodorov: Fixed New Panels module code generates warnings in Path Breadcrumbs.
 
 
 Path Breadcrumbs 7.x-3.0-rc1, 2014-01-26

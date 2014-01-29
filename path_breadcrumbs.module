@@ -849,6 +849,10 @@ function _path_breadcrumbs_static_cache_variant($path, $breadcrumb = NULL) {
  * Override default 'page_breadcrumb' content.
  */
 function path_breadcrumbs_panels_pane_content_alter(&$content, $pane, $args, $context, $renderer, $display) {
+  if (empty($content)) {
+    return;
+  }
+
   if ($content->type == 'page_breadcrumb') {
     // Init Path Breadcrumbs early.
     path_breadcrumbs_set_breadcrumb();
