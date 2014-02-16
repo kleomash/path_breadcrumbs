@@ -1062,7 +1062,7 @@ function path_breadcrumbs_ui_argument_context_form($form, &$form_state) {
           if (is_array($plugin['default'])) {
             $settings_default = $plugin['default'];
           }
-          else if (function_exists($plugin['default'])) {
+          elseif (function_exists($plugin['default'])) {
             $settings_default = $plugin['default']();
           }
         }
