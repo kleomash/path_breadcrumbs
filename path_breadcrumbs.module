@@ -214,6 +214,14 @@ function _path_breadcrumbs_build_breadcrumbs($path_breadcrumb, $contexts = array
   $path_breadcrumb->titles_prepared = explode("\n", $titles);
   $path_breadcrumb->paths_prepared  = explode("\n", $paths);
 
+  // Support empty breadcrumbs (disabling).
+  if (count($path_breadcrumb->titles_prepared) == 1 &&
+      $path_breadcrumb->titles_prepared[0] == '<none>' &&
+      $path_breadcrumb->paths_prepared[0] == '<none>') {
+    $path_breadcrumb->titles_prepared = array();
+    $path_breadcrumb->paths_prepared = array();
+  }
+
   foreach ($path_breadcrumb->titles_prepared as $key => $title) {
 
     // Remove breadcrumb from navigation if it is empty.
