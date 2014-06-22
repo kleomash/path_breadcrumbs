@@ -857,18 +857,6 @@ function path_breadcrumbs_export_list() {
 }
 
 /**
- * Static per-path cache of selected Path Breadcrumbs variant.
- */
-function _path_breadcrumbs_static_cache_variant($path, $breadcrumb = NULL) {
-  $static_cache = &drupal_static(__FUNCTION__);
-  if (empty($breadcrumb)) {
-    return !empty($static_cache[$path]) ? $static_cache[$path] : FALSE;
-  }
-
-  $static_cache[$path] = $breadcrumb;
-}
-
-/**
  * Implements hook_panels_pane_content_alter().
  *
  * Override default 'page_breadcrumb' content.
