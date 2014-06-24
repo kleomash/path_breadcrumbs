@@ -75,10 +75,10 @@ function path_breadcrumbs_load_variant($path) {
     $cache_id = __FUNCTION__ . ':' . $path . ':' . $language->language;
     $cache = cache_get($cache_id, PATH_BREADCRUMBS_CACHE_STORAGE);
     if (!empty($cache->data)) {
-        // Empty results are also cached.
-        if ($cache->data == 'none') {
-          return FALSE;
-        }
+      // Empty results are also cached.
+      if ($cache->data == 'none') {
+        return FALSE;
+      }
 
       // Allow to alter cached items.
       if (count(module_implements('path_breadcrumbs_view_alter')) > 0) {
@@ -90,8 +90,6 @@ function path_breadcrumbs_load_variant($path) {
       }
 
       return $cache->data;
-
-      return FALSE;
     }
   }
 
