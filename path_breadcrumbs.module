@@ -638,15 +638,15 @@ function path_breadcrumbs_load_by_name_multiple($names) {
  *   Array of path_breadcrumbs objects.
  */
 function path_breadcrumbs_load_all() {
-  $data = &drupal_static(__FUNCTION__);
-  if (empty($data)) {
-    ctools_include('export');
-    $data = ctools_export_load_object('path_breadcrumbs', 'all');
-    // Make objects more developer-friendly.
-    $data = array_map('path_breadcrumbs_load_prepare', $data);
-    // Order by weight.
-    uasort($data, '_path_breadcrumbs_sort_weight');
-  }
+
+  ctools_include('export');
+  $data = ctools_export_load_object('path_breadcrumbs', 'all');
+
+  // Make objects more developer-friendly.
+  $data = array_map('path_breadcrumbs_load_prepare', $data);
+
+  // Order by weight.
+  uasort($data, '_path_breadcrumbs_sort_weight');
   return $data;
 }
 
