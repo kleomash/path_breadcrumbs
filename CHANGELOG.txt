@@ -1,8 +1,12 @@
 Path Breadcrumbs 7.x-3.x, xxxx-xx-xx
+
+
+Path Breadcrumbs 7.x-3.1, 2015-01-01
 by Spleshka: Removed static caching from path_breadcrumbs_load_all(), because it is already implemented in ctools_export_load_object().
 #2354497 by perusio, Spleshka: Checking if translatable property of object exists.
 #1893878 by OnkelTem: Use $language_url just like l() does.
 by kalabro: Show error message if user inputs path alias.
+#2394337 by ekes: Restrict some percent-encoded sequences in path tokens.
 
 
 Path Breadcrumbs 7.x-3.0, 2014-06-24
