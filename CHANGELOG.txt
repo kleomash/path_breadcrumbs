@@ -1,4 +1,7 @@
 Path Breadcrumbs 7.x-3.x, xxxx-xx-xx
+by Spleshka: Added new token current-page:path-menu-trail:pb-join:* which generates breadcrumbs based on path bits and menu structure.
+by Spleshka: Improved performance with static caching of heavy path_breadcrumbs_load_variant() function.
+#2473109 by Fant0m, kalabro, petu: Fixed destination parameter is present but doesn't work during editing breadcrumb.
 
 
 Path Breadcrumbs 7.x-3.2, 2015-02-04

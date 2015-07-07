@@ -200,9 +200,15 @@ function path_breadcrumbs_ui_add_form($form, &$form_state, $show_navigation = TR
   $form['#prefix'] = '<div id="path-breadcrumbs-ui-form-wrapper" class="' . $class . '">';
   $form['#suffix'] = '</div>';
 
+  // Save query destination to redirect on AJAX submit.
+  if (!isset($form_state['storage']['destination']) && isset($_GET['destination'])) {
+    $form_state['storage']['destination'] = $_GET['destination'];
+  }
+
   if (!isset($form_state['storage']['step'])) {
     $form_state['storage']['step'] = 1;
   }
+
   $step = $form_state['storage']['step'];
 
   if ($show_navigation) {
@@ -1292,8 +1298,9 @@ function path_breadcrumbs_ui_edit_form_ajax_callback($form, $form_state) {
       // should be added to keep module works properly for all versions.
       ctools_add_js('ajax-responder');
 
+      $destination = isset($form_state['storage']['destination']) ? $form_state['storage']['destination'] : 'admin/structure/path-breadcrumbs';
       $commands = array();
-      $commands[] = ctools_ajax_command_redirect('admin/structure/path-breadcrumbs');
+      $commands[] = ctools_ajax_command_redirect($destination);
       return array('#type' => 'ajax', '#commands' => $commands);
     }
   }
