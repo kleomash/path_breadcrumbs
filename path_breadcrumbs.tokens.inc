@@ -177,13 +177,16 @@ function _path_breadcrumbs_path_menu_trail_token_generate($tokens) {
       }
 
       // Find menu item in menu by path.
-      $menu_link = db_select('menu_links', 'ml')
+      $query = db_select('menu_links', 'ml')
         ->fields('ml', array('mlid', 'link_path', 'link_title'))
         ->condition('ml.link_path', $search_path)
-        ->condition('ml.language', array(LANGUAGE_NONE, $language->language))
-        ->range(0, 1)
-        ->execute()
-        ->fetchObject();
+        ->range(0, 1);
+
+      if (module_exists('i18n_menu')) {
+        $query->condition('ml.language', array(LANGUAGE_NONE, $language->language));
+      }
+
+      $menu_link = $query->execute()->fetchObject();
 
       // If menu item was found, then we can add it as a replacements.
       if (!empty($menu_link)) {
