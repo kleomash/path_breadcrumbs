@@ -18,3 +18,5 @@ CREDITS
 
 Module was developed by Maslouski Yauheni (http://drupalace.ru).
 Module development was not sponsored by anyone. It was created for the love of Drupal.
+
+Module was ported to backdropcms by Leonid Kolesnik (kleomash).
